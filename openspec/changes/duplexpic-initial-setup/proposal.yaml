@@ -1,0 +1,59 @@
+change: duplexpic-initial-setup
+status: proposed
+created: 2026-06-06
+
+intent:
+  Establish the complete Tauri v2 project scaffolding for DuplexPic,
+  with a working frontend showing the A4 canvas layout, two image
+  containers, and a cross-platform build pipeline that compiles to
+  a portable Windows .exe under 20MB.
+
+scope:
+  - Initialize the Tauri v2 Rust backend (src-tauri)
+  - Create the HTML/CSS/JS frontend with Vanilla JS (no frameworks)
+  - Build the A4 virtual canvas with two image drop zones
+  - Wire up the dialog plugin for native file selection
+  - Configure asset protocol and capabilities for local image loading
+  - Set up @media print CSS for zero-margin A4 printing
+  - Create the Rust image crate integration stub
+  - Initial git commit with proper .gitignore
+  - Verify the app compiles and runs (cargo tauri dev)
+
+out_of_scope:
+  - Drag & drop from OS file manager (Phase 2)
+  - Image processing (rotate, mirror, compose) in Rust backend
+  - Swap functionality
+  - Print button logic
+  - Mirror/flip controls
+  - Fit/Fill toggle
+  - Polish (context menu disable, F5 disable)
+
+approach:
+  backend:
+    - Use Tauri v2 (2.11.x) via `npm create tauri-app` or manual setup
+    - Rust with image crate as dependency
+    - Plugin: tauri-plugin-dialog for native file picker
+    - Plugin: tauri-plugin-fs for file access scoping
+    - Capability-based permissions instead of allowlist
+  frontend:
+    - Vanilla JS (ES modules), no build step needed beyond Vite
+    - HTML5 semantic structure: one A4 sheet div, two slot divs
+    - CSS: percentage-based layout for A4 simulation
+    - @media print: @page { size: A4; margin: 0; }
+    - Each slot: 50% height, overflow hidden, centered image
+  security:
+    - assetProtocol enabled with scope for user-selected files
+    - CSP: img-src 'self' asset: https://asset.localhost
+    - Capabilities file with dialog and fs permissions
+
+risks:
+  - Tauri v2 permissions model is strict; missing capability = silent failure
+    -> mitigation: add dialog:default and fs:default capabilities
+  - @media print may behave differently across printer drivers
+    -> mitigation: test with user's HP LaserJet M1120 early
+  - convertFileSrc may need requireLiteralLeadingDot: false on Unix
+    -> mitigation: keep config flexible, test on Linux later
+
+timeline:
+  estimate: "3-4 implementation batches"
+  review_budget_lines: 400

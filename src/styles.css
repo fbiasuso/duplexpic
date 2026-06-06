@@ -1,0 +1,126 @@
+/* ===== RESET ===== */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #2c2c2c;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+/* ===== CANVAS ===== */
+#app {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+#canvas.a4-sheet {
+  width: 595px;
+  min-height: 842px;
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+/* ===== SLOTS ===== */
+.slot {
+  width: 100%;
+  height: 50%;
+  min-height: 421px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+#slot-top {
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.slot-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 1.2rem;
+  text-align: center;
+  user-select: none;
+  width: 100%;
+  height: 100%;
+}
+
+.slot-placeholder span {
+  padding: 1rem;
+}
+
+.slot-image {
+  display: none;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.slot-image.visible {
+  display: block;
+}
+
+/* ===== PRINT ===== */
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  body {
+    background: white;
+    padding: 0;
+    min-height: auto;
+  }
+
+  #app {
+    width: 210mm;
+    height: 297mm;
+  }
+
+  #canvas.a4-sheet {
+    width: 210mm;
+    height: 297mm;
+    min-height: auto;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .slot {
+    height: 50%;
+    min-height: auto;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  #slot-top {
+    border-bottom: none;
+  }
+
+  .slot-placeholder {
+    display: none !important;
+  }
+
+  .slot-image {
+    display: block !important;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+  }
+}

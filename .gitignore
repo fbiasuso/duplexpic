@@ -1,0 +1,23 @@
+# Rust
+target/
+
+# Node
+node_modules/
+
+# Vite
+dist/
+.vite/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Tauri generated
+src-tauri/gen/
