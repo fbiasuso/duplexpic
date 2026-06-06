@@ -1,0 +1,57 @@
+change: duplexpic-image-controls
+status: completed
+created: 2026-06-06
+
+intent:
+  Add per-slot image manipulation controls (rotate 90°, mirror/flip),
+  swap images between top and bottom, fit/fill toggle, clear per slot
+  and clear all, and the print button that invokes window.print().
+
+scope:
+  - Add toolbar per slot with Rotate 90° CW, Mirror, Fit/Fill toggle, Clear
+  - Add global toolbar with Swap, Print, Clear All
+  - Implement rotate 90° clockwise via CSS transform per slot
+  - Implement mirror (horizontal flip) via CSS transform per slot
+  - Implement Swap: exchange images (and their transform states) between slots
+  - Implement Fit (object-fit: contain) / Fill (object-fit: cover) toggle per slot
+  - Implement Clear per slot (remove image, reset transforms)
+  - Implement Clear All (both slots)
+  - Wire up Print button to call window.print()
+  - Save state transformations so they survive Swap and re-render
+  - Apply @media print CSS forces correct rendering of transformed images
+
+out_of_scope:
+  - Rust-side image processing (rotate/mirror on pixels via image crate)
+  - Drag & drop from OS file manager
+  - PDF generation or system print API
+  - Disabling context menu and F5 reload (Phase 3)
+  - Multiple image formats support (already handled in Phase 1)
+
+approach:
+  frontend:
+    - Extend AppState to track per-slot transform state: rotation (0/90/180/270),
+      mirror (boolean), fitMode ('fill' | 'fit'), imagePath
+    - Toolbar per slot: small floating bar inside each .slot
+    - CSS transforms: rotation via `transform: rotate(Xdeg)`, mirror via
+      `transform: scaleX(-1)` — both applied to .slot-image
+    - Swap: exchange both the image references and transform states
+    - Fit/Fill: toggle object-fit between 'cover' and 'contain'
+    - Print button calls window.print() via @tauri-apps/api/core
+    - Use event delegation for toolbar buttons, slot clicks now only when empty
+  backend:
+    - No Rust changes needed for this phase (all CSS/JS)
+    - If window.print() has issues with CSS transforms,
+      add a Rust command to compose the final image (deferred to Phase 3)
+
+risks:
+  - CSS transform + @media print compatibility: some printers may not render
+    CSS transforms. Mitigation: test with HP LaserJet M1120 early.
+    Fallback: Rust-side pixel composition in Phase 3.
+  - Swap needs to preserve all transform state, not just image paths.
+    Mitigation: AppState tracks a full SlotConfig object per slot.
+  - event delegation on .slot may conflict with toolbar button clicks.
+    Mitigation: stopPropagation on toolbar buttons.
+
+timeline:
+  estimate: "2-3 implementation batches"
+  review_budget_lines: 400

@@ -1,6 +1,4 @@
 import { open } from '@tauri-apps/plugin-dialog';
-import { convertFileSrc } from '@tauri-apps/api/core';
-import { renderSlot } from './canvas.js';
 import { appState } from './state.js';
 
 export async function openFileDialog(slotId) {
@@ -18,12 +16,8 @@ export async function openFileDialog(slotId) {
     }
 
     const path = typeof selected === 'string' ? selected : selected.path;
-    const assetUrl = convertFileSrc(path);
-
-    renderSlot(slotId, assetUrl);
     appState.setImage(slotId, path);
-
-    return assetUrl;
+    return path;
   } catch (error) {
     console.error('Error loading image:', error);
     alert('Error al cargar la imagen: ' + error);
