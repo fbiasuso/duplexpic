@@ -9,6 +9,20 @@ function onSlotClick(slotId) {
   }
 }
 
+// Disable context menu
+document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+// Block F5 / Ctrl+R reload
+document.addEventListener('keydown', (e) => {
+  if (
+    e.key === 'F5' ||
+    (e.ctrlKey && (e.key === 'r' || e.key === 'R')) ||
+    (e.ctrlKey && e.shiftKey && (e.key === 'r' || e.key === 'R'))
+  ) {
+    e.preventDefault();
+  }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   initToolbars();
   initCanvas();
@@ -28,6 +42,27 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // Drag & drop on slots
+  const allSlots = document.querySelectorAll('.slot');
+  allSlots.forEach(slot => {
+    slot.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      slot.classList.add('drag-over');
+    });
+
+    slot.addEventListener('dragleave', () => {
+      slot.classList.remove('drag-over');
+    });
+
+    slot.addEventListener('drop', (e) => {
+      e.preventDefault();
+      slot.classList.remove('drag-over');
+      if (appState.isEmpty(slot.id)) {
+        openFileDialog(slot.id);
+      }
+    });
+  });
 
   const globalToolbar = document.getElementById('global-toolbar');
   if (globalToolbar) {

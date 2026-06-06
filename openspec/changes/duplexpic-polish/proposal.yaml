@@ -1,0 +1,45 @@
+change: duplexpic-polish
+status: proposed
+created: 2026-06-06
+
+intent:
+  Polish the DuplexPic app for production-like behavior: disable browser
+  context menu and keyboard shortcuts, enable drag & drop from OS file
+  manager, and prepare for printer testing.
+
+scope:
+  - Disable default right-click context menu in the webview
+  - Disable F5 / Ctrl+R reload keyboard shortcuts
+  - Implement drag & drop from OS file manager onto slots
+  - Add visual feedback for drag hover state
+  - Add window.print() @media print adjustments if needed
+
+out_of_scope:
+  - Rust-side image processing (Phase 4 if printer testing fails)
+  - PDF generation
+  - System print API (keep using window.print())
+  - Multi-language support
+  - Auto-update mechanism
+
+approach:
+  frontend:
+    - Context menu: document.addEventListener('contextmenu', e => e.preventDefault())
+    - Keyboard: document.addEventListener('keydown', block F5, Ctrl+R, Ctrl+Shift+R)
+    - Drag & drop: dragover/drop events on .slot elements
+    - Drop handler reads File object, gets path via Tauri dialog or convertFileSrc
+    - Drag hover: add .drag-over class for visual feedback
+  backend:
+    - No Rust changes needed for context menu / keyboard
+    - For drag & drop file path: may need a Rust command to resolve File path
+      since web File objects don't have .path in Tauri v2
+    - Alternative: use drop event + tauri-plugin-fs to read the file
+
+risks:
+  - Tauri v2 web File objects may not expose file path
+    -> mitigation: use tauri-plugin-dialog or a custom Rust command
+  - Drag & drop from OS is inconsistent across Windows versions
+    -> mitigation: fallback to click-to-browse (already works)
+
+timeline:
+  estimate: "1-2 implementation batches"
+  review_budget_lines: 200
