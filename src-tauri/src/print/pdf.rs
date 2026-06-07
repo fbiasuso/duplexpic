@@ -156,13 +156,27 @@ impl PdfDocumentBuilder {
         let unique_name = format!("duplexpic_{}.pdf", uuid_v4());
         temp_dir.push(unique_name);
 
-        let mut file = std::fs::File::create(&temp_dir)
-            .map_err(|e| PrintError::Pdf(format!("Failed to create temp file: {}", e)))?;
+        Self::save_to_path(doc, &temp_dir)?;
+
+        Ok(temp_dir)
+    }
+
+    /// Save the PDF document to the given destination path.
+    ///
+    /// Creates parent directories if they don't exist. Overwrites any existing file.
+    pub fn save_to_path(doc: &PdfDocument, dest: &Path) -> Result<(), PrintError> {
+        if let Some(parent) = dest.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| PrintError::Pdf(format!("Failed to create output directory: {}", e)))?;
+        }
+
+        let mut file = std::fs::File::create(dest)
+            .map_err(|e| PrintError::Pdf(format!("Failed to create output file: {}", e)))?;
 
         let warnings = &mut Vec::new();
         doc.save_writer(&mut file, &PdfSaveOptions::default(), warnings);
 
-        Ok(temp_dir)
+        Ok(())
     }
 
     /// Open the PDF in the default viewer (user can print from there).

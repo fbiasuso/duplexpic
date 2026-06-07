@@ -373,7 +373,7 @@ function renderImageInfo(slotId) {
   `;
 }
 
-function buildPrintPayload(mode) {
+function buildPrintPayload(mode, destPath) {
   return {
     slotTop: appState.slots['slot-top'].imagePath || '',
     slotBottom: appState.slots['slot-bottom'].imagePath || '',
@@ -396,6 +396,7 @@ function buildPrintPayload(mode) {
     grayscale: appState.grayscale,
     cropMarks: appState.cropMarks,
     pageSize: appState.pageSize,
+    destPath: destPath || '',
   };
 }
 
@@ -407,25 +408,23 @@ function setStatus(text, type) {
 }
 
 export async function triggerSavePdf() {
-  setStatus('Generating PDF...', '');
+  // Open native save dialog FIRST
+  const { save } = await import('@tauri-apps/plugin-dialog');
+  const dest = await save({
+    filters: [{ name: 'PDF', extensions: ['pdf'] }],
+    defaultPath: 'duplexpic-output.pdf',
+  });
+  if (!dest) {
+    setStatus('Guardado cancelado', '');
+    return;
+  }
+
+  setStatus('Generando PDF...', '');
 
   try {
-    const result = await invoke('compose_print', buildPrintPayload('save'));
-    if (result.ok && result.path) {
-      // Open native save dialog
-      const { save } = await import('@tauri-apps/plugin-dialog');
-      const dest = await save({
-        filters: [{ name: 'PDF', extensions: ['pdf'] }],
-        defaultPath: 'duplexpic-output.pdf',
-      });
-      if (dest) {
-        // Copy temp file to chosen destination
-        const { copyFile } = await import('@tauri-apps/plugin-fs');
-        await copyFile(result.path, dest);
-        setStatus('✓ PDF guardado', 'success');
-      } else {
-        setStatus('Guardado cancelado', '');
-      }
+    const result = await invoke('compose_print', buildPrintPayload('save', dest));
+    if (result.ok) {
+      setStatus('✓ PDF guardado', 'success');
     } else {
       setStatus('Error [' + (result.code || '?') + ']: ' + (result.error || 'Unknown'), 'error');
     }

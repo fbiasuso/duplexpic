@@ -126,6 +126,7 @@ fn compose_print(
     grayscale: bool,
     crop_marks: bool,
     page_size: String,
+    dest_path: String,
 ) -> Result<ComposeResult, String> {
     // ---- Validate inputs ----
     let orientation = Orientation::from_str(&orientation).map_err(|e| e.to_string())?;
@@ -196,12 +197,15 @@ fn compose_print(
             })
         }
         "save" => {
-            let path = print::compose_save(params).map_err(|e| {
+            if dest_path.is_empty() {
+                return Err("VALIDATION_ERROR: dest_path is required for mode 'save'".to_string());
+            }
+            let path = print::compose_save(params, &dest_path).map_err(|e| {
                 format!("{}: {}", error_code(&e), e)
             })?;
             Ok(ComposeResult {
                 ok: true,
-                message: Some("PDF generated".to_string()),
+                message: Some("PDF guardado".to_string()),
                 path: Some(path),
                 error: None,
                 code: None,

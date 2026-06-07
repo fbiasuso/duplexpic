@@ -183,8 +183,10 @@ pub fn compose_print(params: PrintParams) -> Result<String, PrintError> {
     Ok(temp_path.to_string_lossy().to_string())
 }
 
-/// Compose both images, generate a PDF, and return the temp path for saving.
-pub fn compose_save(params: PrintParams) -> Result<String, PrintError> {
-    let temp_path = compose_to_temp(&params)?;
-    Ok(temp_path.to_string_lossy().to_string())
+/// Compose both images, generate a PDF, and save directly to `dest_path`.
+pub fn compose_save(params: PrintParams, dest_path: &str) -> Result<String, PrintError> {
+    let canvas = build_canvas(&params)?;
+    let doc = build_pdf(&canvas, params.copies, params.dpi, params.orientation)?;
+    PdfDocumentBuilder::save_to_path(&doc, std::path::Path::new(dest_path))?;
+    Ok(dest_path.to_string())
 }
