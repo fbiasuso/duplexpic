@@ -146,7 +146,18 @@ export function initProperties() {
         valueEl.textContent = slider.value + ' mm';
         applyMarginsPreview(readSliderValues());
         movedMargins.add(key);
-        showGuide(key, parseInt(slider.value, 10));
+        showGuide(key);
+
+        // If the gutter was already moved and this margin affects its position,
+        // reposition the gutter guides too.
+        if (movedMargins.has('gutter')) {
+          const isLandscape = document.getElementById('canvas')?.classList.contains('landscape');
+          const affectsGutter =
+            isLandscape
+              ? (key === 'left' || key === 'right')
+              : (key === 'top' || key === 'bottom');
+          if (affectsGutter) showGuide('gutter');
+        }
       });
     }
   });
