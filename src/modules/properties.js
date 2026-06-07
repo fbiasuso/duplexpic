@@ -65,60 +65,51 @@ export function initProperties() {
     document.querySelectorAll('.margin-guide').forEach(el => { el.style.display = 'none'; });
   }
 
-  function showGuide(key, valueMm) {
-    const guide = document.getElementById('margin-guide-' + key);
+  function placeGuide(key, topOrLeft, isHorizontal) {
+    const el = document.getElementById('margin-guide-' + key);
+    if (!el) return;
+    el.className = 'margin-guide' + (isHorizontal ? ' horizontal' : ' vertical');
+    el.style.cssText = isHorizontal
+      ? `top:${topOrLeft}px; left:0; width:100%; height:0; display:block;`
+      : `top:0; left:${topOrLeft}px; height:100%; width:0; display:block;`;
+  }
+
+  function showGuide(key) {
     const canvas = document.getElementById('canvas');
-    if (!guide || !canvas) return;
+    if (!canvas) return;
 
     const isLandscape = canvas.classList.contains('landscape');
     const cw = canvas.clientWidth;
     const ch = canvas.clientHeight;
 
-    // Read current paddings from the canvas
     const padTop = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-pad-top')) || 0;
     const padLeft = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-pad-left')) || 0;
     const padBottom = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-pad-bottom')) || 0;
     const padRight = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-pad-right')) || 0;
 
-    let isHorizontal = false;
-    let pos = 0;
-
     switch (key) {
-      case 'top':
-        isHorizontal = true;
-        pos = padTop;
-        break;
-      case 'bottom':
-        isHorizontal = true;
-        pos = ch - padBottom;
-        break;
-      case 'left':
-        isHorizontal = false;
-        pos = padLeft;
-        break;
-      case 'right':
-        isHorizontal = false;
-        pos = cw - padRight;
-        break;
+      case 'top':    placeGuide('top', padTop, true); break;
+      case 'bottom': placeGuide('bottom', ch - padBottom, true); break;
+      case 'left':   placeGuide('left', padLeft, false); break;
+      case 'right':  placeGuide('right', cw - padRight, false); break;
       case 'gutter': {
+        const gap = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-gap')) || 0;
+        const halfGap = gap / 2;
+
         if (isLandscape) {
-          // Vertical gutter between left and right slots
           const available = cw - padLeft - padRight;
-          pos = padLeft + available / 2;
+          const center = padLeft + available / 2;
+          placeGuide('gutter', center - halfGap, false);
+          placeGuide('gutter-2', center + halfGap, false);
         } else {
-          // Horizontal gutter between top and bottom slots
           const available = ch - padTop - padBottom;
-          pos = padTop + available / 2;
+          const center = padTop + available / 2;
+          placeGuide('gutter', center - halfGap, true);
+          placeGuide('gutter-2', center + halfGap, true);
         }
-        isHorizontal = !isLandscape;
-        break;
+        return; // already placed both
       }
     }
-
-    guide.className = 'margin-guide' + (isHorizontal ? ' horizontal' : ' vertical');
-    guide.style.cssText = isHorizontal
-      ? `top:${pos}px; left:0; width:100%; height:0; display:block;`
-      : `top:0; left:${pos}px; height:100%; width:0; display:block;`;
   }
 
   // ── Margin guide persistence ────────────────────────────
@@ -159,8 +150,14 @@ export function initProperties() {
 
   // On mouseleave without move: briefly show then hide
   function showAndForget(key) {
+    // Hide the main guide for this key
     const guide = document.getElementById('margin-guide-' + key);
     if (guide) guide.style.display = 'none';
+    // Also hide gutter-2 if this is the gutter
+    if (key === 'gutter') {
+      const g2 = document.getElementById('margin-guide-gutter-2');
+      if (g2) g2.style.display = 'none';
+    }
   }
 
   // Apply — persist to state
