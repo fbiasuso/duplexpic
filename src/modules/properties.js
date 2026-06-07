@@ -124,12 +124,16 @@ export function initProperties() {
     }
   }
 
+  // ── Margin guide persistence ────────────────────────────
+  // Once a slider is moved, its guide line stays visible until Apply/Cancel.
+  const movedMargins = new Set();
+
   // Live preview while dragging — with margin guide
   marginSliders.forEach(slider => {
     const key = slider.id.replace('margin-', '');
     const valueEl = document.getElementById(slider.id + '-value');
 
-    // Show guide on hover/focus
+    // Hover shows guide — always
     slider.addEventListener('mouseenter', () => {
       updateMarginGuide(key, parseInt(slider.value, 10));
     });
@@ -137,15 +141,20 @@ export function initProperties() {
       updateMarginGuide(key, parseInt(slider.value, 10));
     });
 
-    // Hide guide when leaving
-    slider.addEventListener('mouseleave', hideMarginGuide);
-    slider.addEventListener('blur', hideMarginGuide);
+    // Leave hides guide ONLY if this slider was never moved (transient mode)
+    slider.addEventListener('mouseleave', () => {
+      if (!movedMargins.has(key)) hideMarginGuide();
+    });
+    slider.addEventListener('blur', () => {
+      if (!movedMargins.has(key)) hideMarginGuide();
+    });
 
-    // Live update
+    // Moving the slider = persistent mode
     if (valueEl) {
       slider.addEventListener('input', () => {
         valueEl.textContent = slider.value + ' mm';
         applyMarginsPreview(readSliderValues());
+        movedMargins.add(key);
         updateMarginGuide(key, parseInt(slider.value, 10));
       });
     }
@@ -158,6 +167,7 @@ export function initProperties() {
       const margins = readSliderValues();
       appState.setMargins(margins);
       appState.commitMargins();
+      movedMargins.clear();
       hideMarginGuide();
       const origText = applyBtn.textContent;
       applyBtn.textContent = '✓ Aplicado';
@@ -179,6 +189,7 @@ export function initProperties() {
         }
       });
       applyMarginsPreview(committed);
+      movedMargins.clear();
       hideMarginGuide();
     });
   }
