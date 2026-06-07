@@ -47,9 +47,9 @@ export function initZoom() {
     calculateFit();
   });
 
-  // ── Initial auto-fit ─────────────────────────────────────
+  // ── Initial zoom at 67% for restored window ──────────────
   setTimeout(() => {
-    calculateFit();
+    appState.setZoom(0.67);
   }, 50);
 
   // ── Window resize (debounced) ────────────────────────────
