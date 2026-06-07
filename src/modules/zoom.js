@@ -35,6 +35,11 @@ export function initZoom() {
     if (label) {
       label.textContent = Math.round(level * 100) + '%';
     }
+    // Show scroll when zoomed in, hide when auto-fitted
+    const canvasZone = document.getElementById('canvas-zone');
+    if (canvasZone) {
+      canvasZone.style.overflow = level > 1.0 ? 'auto' : 'hidden';
+    }
   });
 
   // ── Recalculate on orientation change ────────────────────
