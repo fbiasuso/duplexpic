@@ -58,30 +58,27 @@ export function initProperties() {
     return vals;
   }
 
-  // ── Margin guide dashed line ────────────────────────────
-  function hideMarginGuide() {
-    const guide = document.getElementById('margin-guide');
-    if (guide) guide.style.display = 'none';
+  // ── Margin guide dashed lines ───────────────────────────
+  // Each margin type has its own overlay element; multiple can be visible at once.
+
+  function hideAllGuides() {
+    document.querySelectorAll('.margin-guide').forEach(el => { el.style.display = 'none'; });
   }
 
-  function updateMarginGuide(key, valueMm) {
-    const guide = document.getElementById('margin-guide');
+  function showGuide(key, valueMm) {
+    const guide = document.getElementById('margin-guide-' + key);
     const canvas = document.getElementById('canvas');
     if (!guide || !canvas) return;
 
     const isLandscape = canvas.classList.contains('landscape');
-    const a4w = isLandscape ? 297 : 210;
-    const a4h = isLandscape ? 210 : 297;
     const cw = canvas.clientWidth;
     const ch = canvas.clientHeight;
-    const toPx = (mm, refPx, refMm) => (mm / refMm) * refPx;
 
-    // Read current paddings set by applyMarginsPreview
+    // Read current paddings from the canvas
     const padTop = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-pad-top')) || 0;
     const padLeft = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-pad-left')) || 0;
     const padBottom = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-pad-bottom')) || 0;
     const padRight = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-pad-right')) || 0;
-    const gap = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-gap')) || 0;
 
     let isHorizontal = false;
     let pos = 0;
@@ -105,7 +102,7 @@ export function initProperties() {
         break;
       case 'gutter': {
         isHorizontal = true;
-        // Gutter center = top padding + (available height / 2)
+        const gap = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-gap')) || 0;
         const available = ch - padTop - padBottom;
         pos = padTop + available / 2;
         break;
@@ -113,15 +110,9 @@ export function initProperties() {
     }
 
     guide.className = 'margin-guide' + (isHorizontal ? ' horizontal' : ' vertical');
-    if (isHorizontal) {
-      guide.style.cssText =
-        `top:${pos}px; left:0; width:100%; height:0;` +
-        `border-top:2px dashed #ff6b35; display:block;`;
-    } else {
-      guide.style.cssText =
-        `top:0; left:${pos}px; height:100%; width:0;` +
-        `border-left:2px dashed #ff6b35; display:block;`;
-    }
+    guide.style.cssText = isHorizontal
+      ? `top:${pos}px; left:0; width:100%; height:0; display:block;`
+      : `top:0; left:${pos}px; height:100%; width:0; display:block;`;
   }
 
   // ── Margin guide persistence ────────────────────────────
@@ -135,18 +126,18 @@ export function initProperties() {
 
     // Hover shows guide — always
     slider.addEventListener('mouseenter', () => {
-      updateMarginGuide(key, parseInt(slider.value, 10));
+      showGuide(key, parseInt(slider.value, 10));
     });
     slider.addEventListener('focus', () => {
-      updateMarginGuide(key, parseInt(slider.value, 10));
+      showGuide(key, parseInt(slider.value, 10));
     });
 
     // Leave hides guide ONLY if this slider was never moved (transient mode)
     slider.addEventListener('mouseleave', () => {
-      if (!movedMargins.has(key)) hideMarginGuide();
+      if (!movedMargins.has(key)) showAndForget(key);
     });
     slider.addEventListener('blur', () => {
-      if (!movedMargins.has(key)) hideMarginGuide();
+      if (!movedMargins.has(key)) showAndForget(key);
     });
 
     // Moving the slider = persistent mode
@@ -155,10 +146,16 @@ export function initProperties() {
         valueEl.textContent = slider.value + ' mm';
         applyMarginsPreview(readSliderValues());
         movedMargins.add(key);
-        updateMarginGuide(key, parseInt(slider.value, 10));
+        showGuide(key, parseInt(slider.value, 10));
       });
     }
   });
+
+  // On mouseleave without move: briefly show then hide
+  function showAndForget(key) {
+    const guide = document.getElementById('margin-guide-' + key);
+    if (guide) guide.style.display = 'none';
+  }
 
   // Apply — persist to state
   const applyBtn = document.querySelector('[data-action="apply-margins"]');
@@ -168,7 +165,7 @@ export function initProperties() {
       appState.setMargins(margins);
       appState.commitMargins();
       movedMargins.clear();
-      hideMarginGuide();
+      hideAllGuides();
       const origText = applyBtn.textContent;
       applyBtn.textContent = '✓ Aplicado';
       setTimeout(() => { applyBtn.textContent = origText; }, 1500);
@@ -190,7 +187,7 @@ export function initProperties() {
       });
       applyMarginsPreview(committed);
       movedMargins.clear();
-      hideMarginGuide();
+      hideAllGuides();
     });
   }
 
