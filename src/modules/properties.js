@@ -101,10 +101,16 @@ export function initProperties() {
         pos = cw - padRight;
         break;
       case 'gutter': {
-        isHorizontal = true;
-        const gap = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-gap')) || 0;
-        const available = ch - padTop - padBottom;
-        pos = padTop + available / 2;
+        if (isLandscape) {
+          // Vertical gutter between left and right slots
+          const available = cw - padLeft - padRight;
+          pos = padLeft + available / 2;
+        } else {
+          // Horizontal gutter between top and bottom slots
+          const available = ch - padTop - padBottom;
+          pos = padTop + available / 2;
+        }
+        isHorizontal = !isLandscape;
         break;
       }
     }
