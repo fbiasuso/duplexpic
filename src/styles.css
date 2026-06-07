@@ -543,42 +543,64 @@ body {
   background: rgba(74, 222, 128, 0.1);
 }
 
-/* ===== PRINT PREVIEW OVERLAY ===== */
-#print-preview {
-  position: absolute;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: #2c2c2c;
-  z-index: 20;
-}
-
 #canvas-zone {
   position: relative;
 }
 
-#print-preview img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
+/* ===== PRINT TAB CONTROLS ===== */
 
-.back-to-edit-btn {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  padding: 8px 16px;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
+#print-tab select {
+  width: 100%;
+  padding: 6px 8px;
+  background: #3a3a3a;
+  color: #e0e0e0;
+  border: 1px solid #555;
+  border-radius: 4px;
+  font-size: 0.85rem;
   cursor: pointer;
-  font-size: 0.9rem;
-  z-index: 21;
 }
 
-.back-to-edit-btn:hover {
-  background: rgba(0, 0, 0, 0.8);
+.print-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+.print-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #4a9eff;
+  cursor: pointer;
+}
+
+.slot-selector,
+.method-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.slot-option,
+.method-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #ccc;
+  padding: 2px 0;
+}
+
+.slot-option input[type="radio"],
+.method-option input[type="radio"] {
+  accent-color: #4a9eff;
+}
+
+.slot-option span,
+.method-option span {
+  margin-left: 4px;
 }

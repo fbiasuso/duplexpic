@@ -76,9 +76,9 @@ fn transform_image(path: String, rotation: u32, mirrored: bool) -> Result<String
 struct ComposeResult {
     ok: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    preview: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     message: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     error: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -93,8 +93,16 @@ fn validate_dpi(dpi: u32) -> Result<(), PrintError> {
     }
 }
 
+/// Validate page size.
+fn validate_page_size(s: &str) -> Result<(), String> {
+    match s {
+        "A4" | "A5" | "Letter" => Ok(()),
+        _ => Err(format!("VALIDATION_ERROR: invalid page size '{}'", s)),
+    }
+}
+
 /// Tauri command: compose both images onto an A4 canvas and produce a
-/// preview PNG or a printable PDF with system print spawn.
+/// printable PDF (print direct, open in viewer, or save).
 #[tauri::command]
 fn compose_print(
     slot_top: String,
@@ -113,16 +121,26 @@ fn compose_print(
     mirror_bottom: bool,
     dpi: u32,
     mode: String,
+    copies: u32,
+    selected_slots: String,
+    grayscale: bool,
+    crop_marks: bool,
+    page_size: String,
 ) -> Result<ComposeResult, String> {
     // ---- Validate inputs ----
     let orientation = Orientation::from_str(&orientation).map_err(|e| e.to_string())?;
     let fit_top = FitMode::from_str(&fit_top).map_err(|e| e.to_string())?;
     let fit_bottom = FitMode::from_str(&fit_bottom).map_err(|e| e.to_string())?;
     validate_dpi(dpi).map_err(|e| e.to_string())?;
+    validate_page_size(&page_size)?;
 
-    if mode != "preview" && mode != "print" {
-        return Err(format!("VALIDATION_ERROR: mode must be 'preview' or 'print', got '{}'", mode));
+    if mode != "print" && mode != "open" && mode != "save" {
+        return Err(format!(
+            "VALIDATION_ERROR: mode must be 'print', 'open' or 'save', got '{}'", mode
+        ));
     }
+
+    let copies = copies.max(1);
 
     let margins = Margins {
         top: margins_top,
@@ -144,31 +162,47 @@ fn compose_print(
         mirror_top,
         mirror_bottom,
         dpi,
+        copies,
+        selected_slots,
+        grayscale,
+        crop_marks,
+        page_size,
     };
 
     // ---- Dispatch ----
     match mode.as_str() {
-        "preview" => {
-            let png_bytes = print::compose_preview(params).map_err(|e| {
+        "print" => {
+            let path = print::compose_print(params).map_err(|e| {
                 format!("{}: {}", error_code(&e), e)
             })?;
-            let b64 = BASE64.encode(&png_bytes);
             Ok(ComposeResult {
                 ok: true,
-                preview: Some(format!("data:image/png;base64,{}", b64)),
-                message: None,
+                message: Some("Sent to printer".to_string()),
+                path: Some(path),
                 error: None,
                 code: None,
             })
         }
-        "print" => {
-            print::compose_print(params).map_err(|e| {
+        "open" => {
+            let path = print::compose_open(params).map_err(|e| {
                 format!("{}: {}", error_code(&e), e)
             })?;
             Ok(ComposeResult {
                 ok: true,
-                preview: None,
-                message: Some("Print dialog opened".to_string()),
+                message: Some("PDF opened in viewer".to_string()),
+                path: Some(path),
+                error: None,
+                code: None,
+            })
+        }
+        "save" => {
+            let path = print::compose_save(params).map_err(|e| {
+                format!("{}: {}", error_code(&e), e)
+            })?;
+            Ok(ComposeResult {
+                ok: true,
+                message: Some("PDF generated".to_string()),
+                path: Some(path),
                 error: None,
                 code: None,
             })

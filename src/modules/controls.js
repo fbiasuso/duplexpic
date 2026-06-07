@@ -1,5 +1,4 @@
 import { appState } from './state.js';
-import { triggerComposePreview, triggerComposePrint } from './properties.js';
 
 const SLOT_TOOLBAR_HTML = `
   <div class="slot-toolbar" data-slot-toolbar>
@@ -153,21 +152,6 @@ export function handleToolbarAction(action, slotId) {
       appState.setOrientation(newOrientation);
       break;
     }
-    case 'print':
-      if (!appState.printPreviewMode) {
-        // First click: switch to print tab and generate preview
-        appState.setActiveTab('print');
-        appState.setPrintPreviewMode(false);
-        triggerComposePreview();
-      } else {
-        // Second click: user already sees preview, send to printer
-        triggerComposePrint();
-      }
-      break;
-    case 'back-to-edit':
-      appState.setPrintPreviewMode(false);
-      appState.setComposedUrl(null);
-      break;
     case 'clear-all':
       appState.clearSlot('slot-top');
       appState.clearSlot('slot-bottom');

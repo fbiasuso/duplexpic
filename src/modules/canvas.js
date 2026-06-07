@@ -166,49 +166,7 @@ export function clearSlot(slotId) {
   }
 }
 
-function renderPrintPreview(show) {
-  const overlay = document.getElementById('print-preview');
-  const scroll = document.getElementById('canvas-scroll');
-  const zoomBar = document.querySelector('.zoom-bar');
-  if (!overlay) return;
-
-  if (show && appState.composedUrl) {
-    const img = document.getElementById('print-preview-image');
-    if (img) img.src = appState.composedUrl;
-    overlay.style.display = 'flex';
-    if (scroll) scroll.style.display = 'none';
-    if (zoomBar) zoomBar.style.display = 'none';
-  } else {
-    overlay.style.display = 'none';
-    if (scroll) scroll.style.display = '';
-    if (zoomBar) zoomBar.style.display = '';
-    const img = document.getElementById('print-preview-image');
-    if (img) img.src = '';
-  }
-}
-
 export function initCanvas() {
   clearSlot('slot-top');
   clearSlot('slot-bottom');
-
-  // Print preview mode toggle
-  appState.onEvent('printPreviewMode', v => {
-    renderPrintPreview(v);
-  });
-
-  // When a new composed URL arrives while already in preview mode, refresh
-  appState.onEvent('composedUrl', () => {
-    if (appState.printPreviewMode) {
-      renderPrintPreview(true);
-    }
-  });
-
-  // "Back to Edit" button in the print preview overlay
-  const backBtn = document.querySelector('[data-action="back-to-edit"]');
-  if (backBtn) {
-    backBtn.addEventListener('click', () => {
-      appState.setPrintPreviewMode(false);
-      appState.setComposedUrl(null);
-    });
-  }
 }

@@ -6,6 +6,7 @@ use printpdf::*;
 
 use crate::print::error::PrintError;
 use crate::print::composition::Orientation;
+pub use printpdf::PdfDocument;
 
 // ---------------------------------------------------------------------------
 // CMYK conversion
@@ -46,62 +47,43 @@ pub fn rgba_to_cmyk(r: u8, g: u8, b: u8) -> [u8; 4] {
 // PdfDocumentBuilder
 // ---------------------------------------------------------------------------
 
-/// Builds a single-page A4 PDF from a composited RGBA image.
+/// Builds a single-page PDF from a composited RGBA image.
 ///
 /// Images are embedded as RGBA (RGB color space in PDF).
 /// Future CMYK support will use lopdf for true /DeviceCMYK output.
 pub struct PdfDocumentBuilder {
     dpi: u32,
     orientation: Orientation,
+    page_size: String,
 }
 
 impl PdfDocumentBuilder {
     pub fn new(dpi: u32, orientation: Orientation) -> Self {
-        PdfDocumentBuilder { dpi, orientation }
+        PdfDocumentBuilder {
+            dpi,
+            orientation,
+            page_size: "A4".to_string(),
+        }
     }
 
-    /// Add the composited RGBA image to the PDF document.
-    ///
-    /// If `preview` is true, skip PDF generation entirely (just return Ok).
-    pub fn add_image(
-        &self,
-        canvas: &RgbaImage,
-        preview: bool,
-    ) -> Result<(PdfDocument, XObjectId), PrintError> {
-        if preview {
-            // not reached — caller should handle preview separately
-            return Err(PrintError::Pdf("preview mode should skip PDF".into()));
+    #[allow(dead_code)]
+    pub fn new_with_size(dpi: u32, orientation: Orientation, page_size: &str) -> Self {
+        PdfDocumentBuilder {
+            dpi,
+            orientation,
+            page_size: page_size.to_string(),
         }
+    }
 
-        let (width_mm, height_mm) = self.orientation.a4_mm();
+    /// Add the composited RGBA image to a new PDF document and create a single page.
+    ///
+    /// Returns the document, image_id, and page dimensions in pts.
+    pub fn create_single_page(&self, canvas: &RgbaImage) -> Result<(PdfDocument, XObjectId, Mm, Mm), PrintError> {
+        let (width_mm, height_mm) = self.orientation.page_mm(&self.page_size);
         let width_pt = Mm(width_mm as f32);
         let height_pt = Mm(height_mm as f32);
 
-        let mut doc = PdfDocument::new("DuplexPic");
-
-        // Pass RGBA pixels as-is (RGB color space in PDF).
-        let raw_pixels: Vec<u8> = canvas
-            .pixels()
-            .flat_map(|p| vec![p[0], p[1], p[2], p[3]])
-            .collect();
-
-        let image = RawImage {
-            pixels: RawImageData::U8(raw_pixels),
-            width: canvas.width() as usize,
-            height: canvas.height() as usize,
-            data_format: RawImageFormat::RGBA8,
-            tag: vec![],
-        };
-
-        let image_id = doc.add_image(&image);
-
-        // --- Page with image ---
-        // Scale the image to fill the page.
-        // The image is at {dpi} DPI, the PDF page is in mm.
-        // 1 inch = 25.4 mm, 1 point = 1/72 inch
-        // At 300 DPI, 1 pixel = 1/300 inch = 72/300 points = 0.24 pt
-        // To fill A4 (595pt × 842pt), image of 2480px needs scale_x = 595/2480 ≈ 0.24
-        // But we let printpdf handle the DPI scaling via the dpi field in XObjectTransform.
+        let (mut doc, image_id) = self.add_image_to_doc(canvas)?;
 
         let transform = XObjectTransform {
             translate_x: None,
@@ -119,8 +101,53 @@ impl PdfDocumentBuilder {
         );
 
         doc.with_pages(vec![page]);
+        Ok((doc, image_id, width_pt, height_pt))
+    }
 
+    /// Add the image to a document (no pages created).
+    /// Used by `create_single_page` and callers that need multi-page.
+    pub fn add_image_to_doc(&self, canvas: &RgbaImage) -> Result<(PdfDocument, XObjectId), PrintError> {
+        let mut doc = PdfDocument::new("DuplexPic");
+
+        let raw_pixels: Vec<u8> = canvas
+            .pixels()
+            .flat_map(|p| vec![p[0], p[1], p[2], p[3]])
+            .collect();
+
+        let image = RawImage {
+            pixels: RawImageData::U8(raw_pixels),
+            width: canvas.width() as usize,
+            height: canvas.height() as usize,
+            data_format: RawImageFormat::RGBA8,
+            tag: vec![],
+        };
+
+        let image_id = doc.add_image(&image);
         Ok((doc, image_id))
+    }
+
+    /// Build a page with the given image_id and page dimensions.
+    pub fn make_page(
+        &self,
+        image_id: &XObjectId,
+        width_pt: Mm,
+        height_pt: Mm,
+    ) -> PdfPage {
+        PdfPage::new(
+            width_pt,
+            height_pt,
+            vec![Op::UseXobject {
+                id: image_id.clone(),
+                transform: XObjectTransform {
+                    translate_x: None,
+                    translate_y: None,
+                    rotate: None,
+                    scale_x: None,
+                    scale_y: None,
+                    dpi: Some(self.dpi as f32),
+                },
+            }],
+        )
     }
 
     /// Save the PDF document to a temporary file and return its path.
@@ -136,6 +163,66 @@ impl PdfDocumentBuilder {
         doc.save_writer(&mut file, &PdfSaveOptions::default(), warnings);
 
         Ok(temp_dir)
+    }
+
+    /// Open the PDF in the default viewer (user can print from there).
+    ///
+    /// On Windows: uses `PowerShell Start-Process`.
+    /// On Linux: uses `xdg-open`.
+    pub fn spawn_open(temp_path: &Path) -> Result<(), PrintError> {
+        #[cfg(target_os = "windows")]
+        {
+            let status = std::process::Command::new("powershell")
+                .args([
+                    "-Command",
+                    "Start-Process",
+                    "-FilePath",
+                    &temp_path.to_string_lossy(),
+                ])
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null())
+                .status()
+                .map_err(|e| {
+                    PrintError::PrintSpawn(format!("Failed to launch PowerShell: {}", e))
+                })?;
+
+            if !status.success() {
+                return Err(PrintError::PrintSpawn(format!(
+                    "PowerShell exited with code: {:?}",
+                    status.code()
+                )));
+            }
+
+            Ok(())
+        }
+
+        #[cfg(target_os = "linux")]
+        {
+            let status = std::process::Command::new("xdg-open")
+                .arg(&temp_path.to_string_lossy())
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null())
+                .status()
+                .map_err(|e| {
+                    PrintError::PrintSpawn(format!("Failed to launch xdg-open: {}", e))
+                })?;
+
+            if !status.success() {
+                return Err(PrintError::PrintSpawn(format!(
+                    "xdg-open exited with code: {:?}",
+                    status.code()
+                )));
+            }
+
+            Ok(())
+        }
+
+        #[cfg(not(any(target_os = "windows", target_os = "linux")))]
+        {
+            Err(PrintError::PrintSpawn(
+                "Opening PDF is not supported on this platform".into(),
+            ))
+        }
     }
 
     /// Spawn the system print dialog for the given PDF file.
@@ -242,9 +329,9 @@ mod tests {
     fn test_add_image_rgb_creates_valid_doc() {
         let builder = PdfDocumentBuilder::new(300, Orientation::Portrait);
         let canvas = RgbaImage::from_pixel(100, 100, ::image::Rgba([128u8, 128, 128, 255]));
-        let result = builder.add_image(&canvas, false);
-        assert!(result.is_ok(), "add_image failed: {:?}", result.err());
-        let (doc, _id) = result.unwrap();
+        let result = builder.create_single_page(&canvas);
+        assert!(result.is_ok(), "create_single_page failed: {:?}", result.err());
+        let (doc, _, _, _) = result.unwrap();
         let bytes = doc.save(&PdfSaveOptions::default(), &mut Vec::new());
         assert!(bytes.len() > 100, "PDF too short");
         // Check for PDF header
@@ -255,7 +342,7 @@ mod tests {
     fn test_save_to_temp_creates_file() {
         let builder = PdfDocumentBuilder::new(150, Orientation::Portrait);
         let canvas = RgbaImage::from_pixel(10, 10, ::image::Rgba([0u8, 0, 0, 255]));
-        let (doc, _id) = builder.add_image(&canvas, false).unwrap();
+        let (doc, _, _, _) = builder.create_single_page(&canvas).unwrap();
         let path = PdfDocumentBuilder::save_to_temp(&doc).unwrap();
         assert!(path.exists(), "Temp file should exist");
         assert!(
@@ -270,7 +357,7 @@ mod tests {
     fn test_pdf_save_orientation_portrait() {
         let builder = PdfDocumentBuilder::new(300, Orientation::Portrait);
         let canvas = RgbaImage::from_pixel(2480, 3508, ::image::Rgba([255u8, 255, 255, 255]));
-        let result = builder.add_image(&canvas, false);
+        let result = builder.create_single_page(&canvas);
         assert!(result.is_ok(), "Portrait PDF failed: {:?}", result.err());
     }
 }

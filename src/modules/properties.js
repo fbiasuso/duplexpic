@@ -128,13 +128,63 @@ export function initProperties() {
     if (radio) radio.checked = true;
   });
 
-  // ── Print tab: Preview button ─────────────────────────────
-  const previewBtn = document.querySelector('[data-action="preview"]');
-  if (previewBtn) {
-    previewBtn.addEventListener('click', triggerComposePreview);
+  // ── Print tab: Copies slider ──────────────────────────────
+  const copiesSlider = document.getElementById('copies');
+  const copiesValue = document.getElementById('copies-value');
+  if (copiesSlider && copiesValue) {
+    copiesSlider.addEventListener('input', () => {
+      copiesValue.textContent = copiesSlider.value;
+      appState.setCopies(parseInt(copiesSlider.value, 10));
+    });
   }
 
-  // ── Print tab: Print button ───────────────────────────────
+  // ── Print tab: Selected slots radio ───────────────────────
+  const slotRadios = document.querySelectorAll('#tab-print input[name="selectedSlots"]');
+  slotRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      if (radio.checked) appState.setSelectedSlots(radio.value);
+    });
+  });
+
+  // ── Print tab: Grayscale checkbox ─────────────────────────
+  const grayscaleChk = document.getElementById('grayscale');
+  if (grayscaleChk) {
+    grayscaleChk.addEventListener('change', () => {
+      appState.setGrayscale(grayscaleChk.checked);
+    });
+  }
+
+  // ── Print tab: Crop marks checkbox ────────────────────────
+  const cropChk = document.getElementById('crop-marks');
+  if (cropChk) {
+    cropChk.addEventListener('change', () => {
+      appState.setCropMarks(cropChk.checked);
+    });
+  }
+
+  // ── Print tab: Page size select ───────────────────────────
+  const pageSizeSelect = document.getElementById('page-size');
+  if (pageSizeSelect) {
+    pageSizeSelect.addEventListener('change', () => {
+      appState.setPageSize(pageSizeSelect.value);
+    });
+  }
+
+  // ── Print tab: Print method radio ─────────────────────────
+  const methodRadios = document.querySelectorAll('#tab-print input[name="printMethod"]');
+  methodRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      if (radio.checked) appState.setPrintMethod(radio.value);
+    });
+  });
+
+  // ── Print tab: Save PDF button ────────────────────────────
+  const saveBtn = document.querySelector('[data-action="save-pdf"]');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', triggerSavePdf);
+  }
+
+  // ── Print tab: Imprimir button ────────────────────────────
   const printBtn = document.querySelector('[data-action="print-compose"]');
   if (printBtn) {
     printBtn.addEventListener('click', triggerComposePrint);
@@ -175,7 +225,6 @@ function renderImageInfo(slotId) {
   }[config.fitMode] || config.fitMode;
   const mirrorLabel = config.mirrored ? 'Activado' : 'Desactivado';
 
-  // Try to get dimensions from the actual image element
   const slot = document.getElementById(slotId);
   const img = slot ? slot.querySelector('.slot-image') : null;
   const dimensions = img && img.naturalWidth
@@ -223,67 +272,66 @@ function buildPrintPayload(mode) {
     mirrorBottom: appState.slots['slot-bottom'].mirrored || false,
     dpi: appState.dpi,
     mode,
+    copies: appState.copies,
+    selectedSlots: appState.selectedSlots,
+    grayscale: appState.grayscale,
+    cropMarks: appState.cropMarks,
+    pageSize: appState.pageSize,
   };
 }
 
-export async function triggerComposePreview() {
-  const statusEl = document.getElementById('print-status');
-  if (statusEl) {
-    statusEl.textContent = 'Generating preview...';
-    statusEl.className = 'print-status';
-  }
+function setStatus(text, type) {
+  const el = document.getElementById('print-status');
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'print-status' + (type ? ' ' + type : '');
+}
+
+export async function triggerSavePdf() {
+  setStatus('Generating PDF...', '');
 
   try {
-    const result = await invoke('compose_print', buildPrintPayload('preview'));
-    if (result.ok) {
-      appState.setComposedUrl(result.preview);
-      appState.setPrintPreviewMode(true);
-      if (statusEl) {
-        statusEl.textContent = '';
-        statusEl.className = 'print-status';
+    const result = await invoke('compose_print', buildPrintPayload('save'));
+    if (result.ok && result.path) {
+      // Open native save dialog
+      const { save } = await import('@tauri-apps/plugin-dialog');
+      const dest = await save({
+        filters: [{ name: 'PDF', extensions: ['pdf'] }],
+        defaultPath: 'duplexpic-output.pdf',
+      });
+      if (dest) {
+        // Copy temp file to chosen destination
+        const { copyFile } = await import('@tauri-apps/plugin-fs');
+        await copyFile(result.path, dest);
+        setStatus('✓ PDF guardado', 'success');
+      } else {
+        setStatus('Guardado cancelado', '');
       }
     } else {
-      if (statusEl) {
-        statusEl.textContent = 'Error [' + result.code + ']: ' + result.error;
-        statusEl.className = 'print-status error';
-      }
+      setStatus('Error [' + (result.code || '?') + ']: ' + (result.error || 'Unknown'), 'error');
     }
   } catch (err) {
-    if (statusEl) {
-      statusEl.textContent = 'Error: ' + err;
-      statusEl.className = 'print-status error';
-    }
+    setStatus('Error: ' + err, 'error');
   }
 }
 
 export async function triggerComposePrint() {
-  const statusEl = document.getElementById('print-status');
-  if (statusEl) {
-    statusEl.textContent = 'Sending to printer...';
-    statusEl.className = 'print-status';
-  }
+  const method = appState.printMethod === 'open' ? 'open' : 'print';
+  const label = method === 'open' ? 'Abriendo PDF en visor...' : 'Enviando a impresora...';
+  setStatus(label, '');
 
   try {
-    const result = await invoke('compose_print', buildPrintPayload('print'));
+    const result = await invoke('compose_print', buildPrintPayload(method));
     if (result.ok) {
-      if (statusEl) {
-        statusEl.textContent = 'Sent to printer';
-        statusEl.className = 'print-status success';
-      }
-      // Exit preview mode after sending to print
-      appState.setPrintPreviewMode(false);
-      appState.setComposedUrl(null);
+      const msg = method === 'open'
+        ? 'PDF abierto en el visor'
+        : 'Enviado a impresora';
+      setStatus(msg, 'success');
     } else {
-      if (statusEl) {
-        statusEl.textContent = 'Error [' + result.code + ']: ' + result.error;
-        statusEl.className = 'print-status error';
-      }
+      setStatus('Error [' + (result.code || '?') + ']: ' + (result.error || 'Unknown'), 'error');
     }
   } catch (err) {
-    if (statusEl) {
-      statusEl.textContent = 'Error: ' + err;
-      statusEl.className = 'print-status error';
-    }
+    setStatus('Error: ' + err, 'error');
   }
 }
 

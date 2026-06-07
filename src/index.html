@@ -12,7 +12,6 @@
     <div id="sidebar">
       <div class="global-buttons">
         <button data-action="swap" title="Intercambiar">⇅ Intercambiar</button>
-        <button data-action="print" title="Imprimir">🖨️ Imprimir</button>
         <button data-action="clear-all" title="Limpiar todo">🗑️ Limpiar todo</button>
         <button data-action="orientation" title="Cambiar orientación"></button>
       </div>
@@ -55,8 +54,9 @@
           <p class="slot-info-placeholder">Seleccioná un slot</p>
         </div>
         <div id="tab-print" class="tab-pane">
+          <!-- DPI -->
           <div class="property-group">
-            <label>DPI (print resolution)</label>
+            <label>DPI</label>
             <div class="dpi-selector">
               <label class="dpi-option">
                 <input type="radio" name="dpi" value="150" />
@@ -72,8 +72,73 @@
               </label>
             </div>
           </div>
-          <button data-action="preview" class="action-btn">Preview</button>
-          <button data-action="print-compose" class="action-btn primary">Print</button>
+
+          <!-- Page size -->
+          <div class="property-group">
+            <label>Tamaño de hoja</label>
+            <select id="page-size" data-print-setting="pageSize">
+              <option value="A4">A4</option>
+              <option value="A5">A5</option>
+              <option value="Letter">Letter</option>
+            </select>
+          </div>
+
+          <!-- Copies -->
+          <div class="property-group">
+            <label>Copias</label>
+            <div class="value" id="copies-value">1</div>
+            <input type="range" id="copies" min="1" max="99" step="1" value="1" />
+          </div>
+
+          <!-- Selected slots -->
+          <div class="property-group">
+            <label>Slots a incluir</label>
+            <div class="slot-selector">
+              <label class="slot-option">
+                <input type="radio" name="selectedSlots" value="both" checked />
+                <span>Ambos</span>
+              </label>
+              <label class="slot-option">
+                <input type="radio" name="selectedSlots" value="top" />
+                <span>Solo superior</span>
+              </label>
+              <label class="slot-option">
+                <input type="radio" name="selectedSlots" value="bottom" />
+                <span>Solo inferior</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Grayscale -->
+          <label class="print-toggle">
+            <input type="checkbox" id="grayscale" data-print-setting="grayscale" />
+            <span>Escala de grises (ahorra tóner)</span>
+          </label>
+
+          <!-- Crop marks -->
+          <label class="print-toggle">
+            <input type="checkbox" id="crop-marks" data-print-setting="cropMarks" />
+            <span>Marcas de corte</span>
+          </label>
+
+          <!-- Print method -->
+          <div class="property-group">
+            <label>Método de impresión</label>
+            <div class="method-selector">
+              <label class="method-option">
+                <input type="radio" name="printMethod" value="direct" checked />
+                <span>Directo (Rust)</span>
+              </label>
+              <label class="method-option">
+                <input type="radio" name="printMethod" value="open" />
+                <span>Abrir PDF en mi visor</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <button data-action="save-pdf" class="action-btn">Guardar PDF</button>
+          <button data-action="print-compose" class="action-btn primary">Imprimir</button>
           <div id="print-status" class="print-status"></div>
         </div>
       </div>
@@ -81,10 +146,7 @@
 
     <!-- CANVAS ZONE -->
     <div id="canvas-zone">
-      <div id="print-preview" class="print-preview" style="display:none">
-        <img id="print-preview-image" src="" alt="Print preview" />
-        <button data-action="back-to-edit" class="back-to-edit-btn">← Back to Edit</button>
-      </div>
+
       <div id="canvas-scroll">
         <div id="canvas-inner" class="canvas-frame" style="width:595px;height:842px">
           <div id="canvas" class="a4-sheet portrait">

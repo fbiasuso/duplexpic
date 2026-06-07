@@ -3,11 +3,11 @@ import { openFileDialog } from './modules/fileLoader.js';
 import { appState } from './modules/state.js';
 import { initToolbars, handleToolbarAction } from './modules/controls.js';
 import { initSidebar } from './modules/sidebar.js';
-import { initProperties, triggerComposePrint } from './modules/properties.js';
+import { initProperties } from './modules/properties.js';
 import { initZoom } from './modules/zoom.js';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 
-// Block F5 / Ctrl+R reload; handle Ctrl+P for direct print
+// Block F5 / Ctrl+R reload
 document.addEventListener('keydown', (e) => {
   if (
     e.key === 'F5' ||
@@ -15,10 +15,6 @@ document.addEventListener('keydown', (e) => {
     (e.ctrlKey && e.shiftKey && (e.key === 'r' || e.key === 'R'))
   ) {
     e.preventDefault();
-  }
-  if (e.ctrlKey && (e.key === 'p' || e.key === 'P')) {
-    e.preventDefault();
-    triggerComposePrint();
   }
 });
 

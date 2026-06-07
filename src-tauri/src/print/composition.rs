@@ -24,10 +24,21 @@ impl Orientation {
     }
 
     /// A4 dimensions in mm: (width, height)
+    #[allow(dead_code)]
     pub fn a4_mm(&self) -> (f64, f64) {
+        self.page_mm("A4")
+    }
+
+    /// Convert (page_size, orientation) to (width_mm, height_mm).
+    pub fn page_mm(&self, page_size: &str) -> (f64, f64) {
+        let (w, h) = match page_size {
+            "A5" => (148.0, 210.0),
+            "Letter" => (215.9, 279.4),
+            _ => (210.0, 297.0), // A4 default
+        };
         match self {
-            Orientation::Portrait => (210.0, 297.0),
-            Orientation::Landscape => (297.0, 210.0),
+            Orientation::Portrait => (w, h),
+            Orientation::Landscape => (h, w),
         }
     }
 }
@@ -105,9 +116,9 @@ pub struct A4Canvas {
 }
 
 impl A4Canvas {
-    /// Create a new white A4 canvas.
-    pub fn new(dpi: u32, orientation: Orientation, margins: Margins) -> Self {
-        let (w_mm, h_mm) = orientation.a4_mm();
+    /// Create a new white canvas for the given page size.
+    pub fn new(dpi: u32, orientation: Orientation, margins: Margins, page_size: &str) -> Self {
+        let (w_mm, h_mm) = orientation.page_mm(page_size);
         let width_px = mm_to_px(w_mm, dpi as f64);
         let height_px = mm_to_px(h_mm, dpi as f64);
         let buffer = RgbaImage::from_pixel(width_px, height_px, image::Rgba([255u8, 255, 255, 255]));
@@ -294,8 +305,8 @@ pub fn composite_slot(
 // ---------------------------------------------------------------------------
 
 /// Compose both slots onto a single A4 canvas and return the RGBA image.
-pub fn compose(data: SlotData, dpi: u32, orientation: Orientation, margins: Margins) -> Result<RgbaImage, PrintError> {
-    let mut canvas = A4Canvas::new(dpi, orientation, margins);
+pub fn compose(data: SlotData, dpi: u32, orientation: Orientation, margins: Margins, page_size: &str) -> Result<RgbaImage, PrintError> {
+    let mut canvas = A4Canvas::new(dpi, orientation, margins, page_size);
 
     // Composite top slot
     composite_slot(
@@ -359,7 +370,7 @@ mod tests {
     #[test]
     fn test_canvas_dimensions_portrait_300() {
         let margins = Margins { top: 0.0, bottom: 0.0, left: 0.0, right: 0.0, gutter: 0.0 };
-        let canvas = A4Canvas::new(300, Orientation::Portrait, margins);
+        let canvas = A4Canvas::new(300, Orientation::Portrait, margins, "A4");
         // 210 * 300 / 25.4 = 2480.3... → 2480
         // 297 * 300 / 25.4 = 3507.8... → 3508
         assert_eq!(canvas.width_px, 2480);
@@ -369,7 +380,7 @@ mod tests {
     #[test]
     fn test_canvas_dimensions_landscape_600() {
         let margins = Margins { top: 0.0, bottom: 0.0, left: 0.0, right: 0.0, gutter: 0.0 };
-        let canvas = A4Canvas::new(600, Orientation::Landscape, margins);
+        let canvas = A4Canvas::new(600, Orientation::Landscape, margins, "A4");
         // 297 * 600 / 25.4 = 7015.7... → 7016
         // 210 * 600 / 25.4 = 4960.6... → 4961
         assert_eq!(canvas.width_px, 7016);
@@ -456,7 +467,7 @@ mod tests {
             bottom_mirrored: false,
         };
 
-        let result = compose(data, 150, Orientation::Portrait, margins);
+        let result = compose(data, 150, Orientation::Portrait, margins, "A4");
         assert!(result.is_ok(), "Composition failed: {:?}", result.err());
         let canvas = result.unwrap();
         // At 150 DPI: 1240x1754
@@ -482,7 +493,7 @@ mod tests {
             bottom_mirrored: false,
         };
 
-        let result = compose(data, 150, Orientation::Portrait, margins);
+        let result = compose(data, 150, Orientation::Portrait, margins, "A4");
         assert!(result.is_err());
         match result.err().unwrap() {
             PrintError::ImageNotFound(_) => {} // expected
@@ -507,7 +518,7 @@ mod tests {
             bottom_mirrored: false,
         };
 
-        let result = compose(data, 150, Orientation::Portrait, margins);
+        let result = compose(data, 150, Orientation::Portrait, margins, "A4");
         assert!(result.is_ok(), "Composition failed: {:?}", result.err());
 
         let _ = std::fs::remove_file(&path);

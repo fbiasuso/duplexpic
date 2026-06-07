@@ -32,8 +32,12 @@ class AppState {
     this._eventListeners = {};
 
     this.dpi = 300;
-    this.printPreviewMode = false;
-    this.composedUrl = null;
+    this.copies = 1;
+    this.selectedSlots = 'both';
+    this.grayscale = false;
+    this.cropMarks = false;
+    this.pageSize = 'A4';
+    this.printMethod = 'direct';
   }
 
   setImage(slot, path) {
@@ -129,14 +133,34 @@ class AppState {
     this._notifyEvent('dpi', v);
   }
 
-  setPrintPreviewMode(v) {
-    this.printPreviewMode = v;
-    this._notifyEvent('printPreviewMode', v);
+  setCopies(v) {
+    this.copies = Math.max(1, Math.min(99, v));
+    this._notifyEvent('copies', this.copies);
   }
 
-  setComposedUrl(v) {
-    this.composedUrl = v;
-    this._notifyEvent('composedUrl', v);
+  setSelectedSlots(v) {
+    this.selectedSlots = v;
+    this._notifyEvent('selectedSlots', v);
+  }
+
+  setGrayscale(v) {
+    this.grayscale = v;
+    this._notifyEvent('grayscale', v);
+  }
+
+  setCropMarks(v) {
+    this.cropMarks = v;
+    this._notifyEvent('cropMarks', v);
+  }
+
+  setPageSize(v) {
+    this.pageSize = v;
+    this._notifyEvent('pageSize', v);
+  }
+
+  setPrintMethod(v) {
+    this.printMethod = v;
+    this._notifyEvent('printMethod', v);
   }
 
   onEvent(key, callback) {
