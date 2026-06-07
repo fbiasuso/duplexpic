@@ -8,6 +8,7 @@
     "dialog:allow-open",
     "dialog:allow-save",
     "fs:default",
-    "fs:allow-read"
+    "fs:allow-read",
+    "fs:allow-copy-file"
   ]
 }
