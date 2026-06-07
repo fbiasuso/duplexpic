@@ -78,6 +78,9 @@ export function initProperties() {
     const canvas = document.getElementById('canvas');
     if (!canvas) return;
 
+    // Force reflow so box-sizing:border-box padding and clientWidth/Height are settled
+    void canvas.offsetHeight;
+
     const isLandscape = canvas.classList.contains('landscape');
     const cw = canvas.clientWidth;
     const ch = canvas.clientHeight;
