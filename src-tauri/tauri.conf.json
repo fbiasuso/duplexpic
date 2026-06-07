@@ -30,7 +30,7 @@
       {
         "title": "DuplexPic",
         "width": 1280,
-        "height": 880,
+        "height": 768,
         "resizable": true,
         "fullscreen": false
       }
