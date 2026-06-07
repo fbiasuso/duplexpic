@@ -81,8 +81,8 @@ function calculateFit() {
 }
 
 function applyZoom(level) {
-  const canvasWrapper = document.querySelector('.canvas-wrapper');
-  if (canvasWrapper) {
-    canvasWrapper.style.transform = 'scale(' + level + ')';
+  const canvas = document.getElementById('canvas');
+  if (canvas) {
+    canvas.style.transform = 'scale(' + level + ')';
   }
 }
