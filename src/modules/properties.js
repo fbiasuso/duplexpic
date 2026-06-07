@@ -208,8 +208,13 @@ export function initProperties() {
   });
 
   // ── Re-position persistent guides after zoom ────────────
+  // Must run after zoom.js applyZoom() updates canvas-inner dimensions.
+  // requestAnimationFrame ensures the layout has settled.
   appState.onEvent('zoom', () => {
-    movedMargins.forEach(key => showGuide(key));
+    requestAnimationFrame(() => {
+      applyMarginsPreview(appState.margins);
+      movedMargins.forEach(key => showGuide(key));
+    });
   });
 
   // ── Print tab: DPI radio buttons ──────────────────────────
