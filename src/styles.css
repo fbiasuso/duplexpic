@@ -49,6 +49,7 @@ body {
   justify-content: flex-start;
   transform-origin: top center;
   transition: transform 0.15s ease;
+  overflow: hidden;
 }
 
 /* ===== SIDEBAR INTERNALS ===== */
@@ -102,7 +103,7 @@ body {
 .tab-content {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 0;
+  padding: 8px 0;
 }
 
 .tab-pane {
@@ -114,37 +115,38 @@ body {
 }
 
 .property-group {
-  margin: 12px 0;
+  margin: 6px 0;
 }
 
 .property-group label {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #aaa;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .property-group .value {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   color: #e0e0e0;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .property-group input[type="range"] {
   width: 100%;
   accent-color: #4a9eff;
+  height: 18px;
 }
 
 .apply-btn {
   width: 100%;
-  padding: 8px;
-  margin-top: 8px;
+  padding: 6px;
+  margin-top: 6px;
   background: #4a9eff;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .apply-btn:hover {
@@ -189,6 +191,8 @@ body {
 #canvas.a4-sheet.landscape {
   width: 842px;
   height: 595px;
+  display: flex;
+  flex-direction: row;
 }
 
 #canvas.a4-sheet.landscape .slot {
@@ -399,12 +403,14 @@ body {
 /* ===== ZOOM BAR ===== */
 .zoom-bar {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 12px;
+  gap: 8px;
+  padding: 8px 12px;
   background: #1a1a1a;
   width: 100%;
+  min-height: 40px;
 }
 
 .zoom-bar button {

@@ -68,8 +68,8 @@ function calculateFit() {
 
   // canvas-wrapper has flex:1 inside canvas-zone, so its dimensions
   // reflect the actual available space (minus zoom-bar and padding)
-  const availW = canvasWrapper.clientWidth - 16;
-  const availH = canvasWrapper.clientHeight - 16;
+  const availW = canvasWrapper.clientWidth - 32;
+  const availH = canvasWrapper.clientHeight - 32;
 
   if (availW <= 0 || availH <= 0) return;
 
