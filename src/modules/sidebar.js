@@ -48,7 +48,7 @@ export function initSidebar() {
   appState.onEvent('orientation', (v) => {
     const btn = document.querySelector('[data-action="orientation"]');
     if (btn) {
-      btn.textContent = v === 'portrait' ? '🔄 Orientación' : '🔄 Vertical';
+      btn.textContent = v === 'portrait' ? '🔄 Vista Horizontal' : '🔄 Vista Vertical';
     }
   });
 }

@@ -31,11 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Slot hover/click tracking for activeSlot
   const allSlots = document.querySelectorAll('.slot');
   allSlots.forEach(slot => {
-    // First hover sets activeSlot permanently (no mouseleave reset)
+    // Hover always sets activeSlot (exploration mode)
     slot.addEventListener('mouseenter', () => {
-      if (appState.activeSlot === null) {
-        appState.setActiveSlot(slot.id);
-      }
+      appState.setActiveSlot(slot.id);
     });
 
     // Click reinforces activeSlot + existing open-file behavior

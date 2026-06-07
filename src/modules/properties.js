@@ -6,6 +6,13 @@ export function initProperties() {
     renderImageInfo(slotId);
   });
 
+  // Re-render image info when active slot content changes
+  appState.onChange((slot, _config) => {
+    if (slot === appState.activeSlot) {
+      renderImageInfo(slot);
+    }
+  });
+
   appState.onEvent('margins', (margins) => {
     // Update slider positions and value displays
     const marginSliders = document.querySelectorAll('#tab-margins input[type="range"]');
