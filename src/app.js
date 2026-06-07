@@ -3,15 +3,6 @@ import { openFileDialog } from './modules/fileLoader.js';
 import { appState } from './modules/state.js';
 import { initToolbars, handleToolbarAction } from './modules/controls.js';
 
-function onSlotClick(slotId) {
-  if (appState.isEmpty(slotId)) {
-    openFileDialog(slotId);
-  }
-}
-
-// Disable context menu
-document.addEventListener('contextmenu', (e) => e.preventDefault());
-
 // Block F5 / Ctrl+R reload
 document.addEventListener('keydown', (e) => {
   if (
@@ -27,25 +18,28 @@ document.addEventListener('DOMContentLoaded', () => {
   initToolbars();
   initCanvas();
 
-  appState.onChange((slot) => {
-    renderSlot(slot, appState.slots[slot]);
+  appState.onChange(async (slot, config) => {
+    await renderSlot(slot, config);
   });
 
-  const canvas = document.getElementById('canvas');
-  if (canvas) {
-    canvas.addEventListener('click', (event) => {
-      if (event.target.closest('.slot-toolbar')) return;
-
-      const slot = event.target.closest('.slot');
-      if (slot) {
-        onSlotClick(slot.id);
-      }
-    });
-  }
-
-  // Drag & drop on slots
+  // Click y contextmenu directo en cada slot
   const allSlots = document.querySelectorAll('.slot');
   allSlots.forEach(slot => {
+    slot.addEventListener('click', (event) => {
+      if (event.target.closest('.slot-toolbar')) return;
+      if (appState.isEmpty(slot.id)) {
+        openFileDialog(slot.id);
+      }
+    });
+
+    slot.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      if (appState.isEmpty(slot.id)) {
+        openFileDialog(slot.id);
+      }
+    });
+
+    // Drag & drop
     slot.addEventListener('dragover', (e) => {
       e.preventDefault();
       slot.classList.add('drag-over');

@@ -24,7 +24,7 @@ body {
 
 #canvas.a4-sheet {
   width: 595px;
-  min-height: 842px;
+  height: 842px;
   background: #ffffff;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   border-radius: 2px;
@@ -53,16 +53,31 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #999;
-  font-size: 1.2rem;
+  gap: 16px;
+  color: #9ca3af;
+  font-size: 1rem;
   text-align: center;
   user-select: none;
   width: 100%;
   height: 100%;
 }
 
-.slot-placeholder span {
-  padding: 1rem;
+.placeholder-icon {
+  width: 64px;
+  height: 64px;
+  color: #6b7280;
+  opacity: 0.6;
+}
+
+.slot:hover .placeholder-icon {
+  opacity: 0.9;
+  color: #4a9eff;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.slot:hover .slot-placeholder {
+  color: #4a9eff;
+  transition: color 0.2s;
 }
 
 .slot-image {
@@ -71,10 +86,119 @@ body {
   height: 100%;
   object-fit: cover;
   transform-origin: center center;
+  transition: opacity 0.3s ease-in-out;
 }
 
 .slot-image.visible {
   display: block;
+}
+
+.slot-image.fade-in {
+  opacity: 0;
+}
+
+/* Fit-mode directional animation (object-fit isn't animatable) */
+.fit-zoom-in {
+  animation: fitZoomIn 0.3s ease-out;
+}
+
+.fit-zoom-out {
+  animation: fitZoomOut 0.3s ease-out;
+}
+
+@keyframes fitZoomIn {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes fitZoomOut {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+/* Mirror card-flip animation (uses `scale` property, independent of `transform`) */
+.mirror-flip-on {
+  animation: mirrorFlipOn 0.4s ease-out;
+}
+
+.mirror-flip-off {
+  animation: mirrorFlipOff 0.4s ease-out;
+}
+
+@keyframes mirrorFlipOn {
+  0%   { scale: 1 1; }
+  50%  { scale: 0 1; }
+  100% { scale: -1 1; }
+}
+
+@keyframes mirrorFlipOff {
+  0%   { scale: -1 1; }
+  50%  { scale: 0 1; }
+  100% { scale: 1 1; }
+}
+
+/* Swap slide animation (uses `translate` property, independent of `transform` and `scale`) */
+@keyframes slideOutDown {
+  0%   { translate: 0 0; opacity: 1; }
+  100% { translate: 0 100%; opacity: 0; }
+}
+
+@keyframes slideOutUp {
+  0%   { translate: 0 0; opacity: 1; }
+  100% { translate: 0 -100%; opacity: 0; }
+}
+
+@keyframes slideInDown {
+  0%   { translate: 0 -100%; opacity: 0; }
+  100% { translate: 0 0; opacity: 1; }
+}
+
+@keyframes slideInUp {
+  0%   { translate: 0 100%; opacity: 0; }
+  100% { translate: 0 0; opacity: 1; }
+}
+
+.slide-out-down {
+  animation: slideOutDown 0.25s ease-in forwards;
+}
+
+.slide-out-up {
+  animation: slideOutUp 0.25s ease-in forwards;
+}
+
+.slide-in-down {
+  animation: slideInDown 0.25s ease-out forwards;
+}
+
+.slide-in-up {
+  animation: slideInUp 0.25s ease-out forwards;
+}
+
+/* ===== LOADER SPINNER ===== */
+.slot-loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  border: 3px solid rgba(0, 0, 0, 0.08);
+  border-top-color: #4a9eff;
+  border-radius: 50%;
+  display: none;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.slot-loader.visible {
+  display: block;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* ===== DRAG & DROP ===== */
