@@ -195,6 +195,27 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+/* ===== MARGIN GUIDE (dashed line while dragging a margin slider) ===== */
+.margin-guide {
+  position: absolute;
+  pointer-events: none;
+  z-index: 15;
+  display: none;
+}
+.margin-guide.horizontal {
+  left: 0;
+  width: 100%;
+  height: 0;
+  border-top: 2px dashed #ff6b35;
+}
+.margin-guide.vertical {
+  top: 0;
+  height: 100%;
+  width: 0;
+  border-left: 2px dashed #ff6b35;
 }
 
 #canvas.a4-sheet.margins-preview {

@@ -58,13 +58,95 @@ export function initProperties() {
     return vals;
   }
 
-  // Live preview while dragging
+  // ── Margin guide dashed line ────────────────────────────
+  function hideMarginGuide() {
+    const guide = document.getElementById('margin-guide');
+    if (guide) guide.style.display = 'none';
+  }
+
+  function updateMarginGuide(key, valueMm) {
+    const guide = document.getElementById('margin-guide');
+    const canvas = document.getElementById('canvas');
+    if (!guide || !canvas) return;
+
+    const isLandscape = canvas.classList.contains('landscape');
+    const a4w = isLandscape ? 297 : 210;
+    const a4h = isLandscape ? 210 : 297;
+    const cw = canvas.clientWidth;
+    const ch = canvas.clientHeight;
+    const toPx = (mm, refPx, refMm) => (mm / refMm) * refPx;
+
+    // Read current paddings set by applyMarginsPreview
+    const padTop = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-pad-top')) || 0;
+    const padLeft = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-pad-left')) || 0;
+    const padBottom = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-pad-bottom')) || 0;
+    const padRight = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-pad-right')) || 0;
+    const gap = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-gap')) || 0;
+
+    let isHorizontal = false;
+    let pos = 0;
+
+    switch (key) {
+      case 'top':
+        isHorizontal = true;
+        pos = padTop;
+        break;
+      case 'bottom':
+        isHorizontal = true;
+        pos = ch - padBottom;
+        break;
+      case 'left':
+        isHorizontal = false;
+        pos = padLeft;
+        break;
+      case 'right':
+        isHorizontal = false;
+        pos = cw - padRight;
+        break;
+      case 'gutter': {
+        isHorizontal = true;
+        // Gutter center = top padding + (available height / 2)
+        const available = ch - padTop - padBottom;
+        pos = padTop + available / 2;
+        break;
+      }
+    }
+
+    guide.className = 'margin-guide' + (isHorizontal ? ' horizontal' : ' vertical');
+    if (isHorizontal) {
+      guide.style.cssText =
+        `top:${pos}px; left:0; width:100%; height:0;` +
+        `border-top:2px dashed #ff6b35; display:block;`;
+    } else {
+      guide.style.cssText =
+        `top:0; left:${pos}px; height:100%; width:0;` +
+        `border-left:2px dashed #ff6b35; display:block;`;
+    }
+  }
+
+  // Live preview while dragging — with margin guide
   marginSliders.forEach(slider => {
+    const key = slider.id.replace('margin-', '');
     const valueEl = document.getElementById(slider.id + '-value');
+
+    // Show guide on hover/focus
+    slider.addEventListener('mouseenter', () => {
+      updateMarginGuide(key, parseInt(slider.value, 10));
+    });
+    slider.addEventListener('focus', () => {
+      updateMarginGuide(key, parseInt(slider.value, 10));
+    });
+
+    // Hide guide when leaving
+    slider.addEventListener('mouseleave', hideMarginGuide);
+    slider.addEventListener('blur', hideMarginGuide);
+
+    // Live update
     if (valueEl) {
       slider.addEventListener('input', () => {
         valueEl.textContent = slider.value + ' mm';
         applyMarginsPreview(readSliderValues());
+        updateMarginGuide(key, parseInt(slider.value, 10));
       });
     }
   });
@@ -76,6 +158,7 @@ export function initProperties() {
       const margins = readSliderValues();
       appState.setMargins(margins);
       appState.commitMargins();
+      hideMarginGuide();
       const origText = applyBtn.textContent;
       applyBtn.textContent = '✓ Aplicado';
       setTimeout(() => { applyBtn.textContent = origText; }, 1500);
@@ -96,6 +179,7 @@ export function initProperties() {
         }
       });
       applyMarginsPreview(committed);
+      hideMarginGuide();
     });
   }
 
