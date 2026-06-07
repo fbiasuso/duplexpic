@@ -58,18 +58,18 @@ export function initZoom() {
 }
 
 function calculateFit() {
-  const canvasZone = document.getElementById('canvas-zone');
   const canvas = document.getElementById('canvas');
   const canvasWrapper = document.querySelector('.canvas-wrapper');
-  if (!canvasZone || !canvas || !canvasWrapper) return;
+  if (!canvas || !canvasWrapper) return;
 
   const isPortrait = appState.orientation === 'portrait';
   const canvasW = isPortrait ? 595 : 842;
   const canvasH = isPortrait ? 842 : 595;
 
-  // Available space inside canvas-zone with some padding buffer
-  const availW = canvasZone.clientWidth - 32;
-  const availH = canvasZone.clientHeight - 32;
+  // canvas-wrapper has flex:1 inside canvas-zone, so its dimensions
+  // reflect the actual available space (minus zoom-bar and padding)
+  const availW = canvasWrapper.clientWidth - 16;
+  const availH = canvasWrapper.clientHeight - 16;
 
   if (availW <= 0 || availH <= 0) return;
 

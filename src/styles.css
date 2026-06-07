@@ -27,7 +27,6 @@ body {
   flex-direction: column;
   background: #1a1a1a;
   padding: 16px;
-  overflow: hidden;
   color: #e0e0e0;
 }
 
@@ -38,15 +37,17 @@ body {
   align-items: center;
   overflow: hidden;
   background: #2c2c2c;
+  padding-top: 16px;
 }
 
 .canvas-wrapper {
   flex: 1;
   width: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  transform-origin: center center;
+  justify-content: flex-start;
+  transform-origin: top center;
   transition: transform 0.15s ease;
 }
 
@@ -196,7 +197,7 @@ body {
   min-height: auto;
 }
 
-#slot-top.landscape {
+#canvas.a4-sheet.landscape #slot-top {
   border-bottom: none;
   border-right: 2px solid #e0e0e0;
 }
