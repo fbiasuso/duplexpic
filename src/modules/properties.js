@@ -207,6 +207,11 @@ export function initProperties() {
     applyMarginsPreview(margins);
   });
 
+  // ── Re-position persistent guides after zoom ────────────
+  appState.onEvent('zoom', () => {
+    movedMargins.forEach(key => showGuide(key));
+  });
+
   // ── Print tab: DPI radio buttons ──────────────────────────
   const dpiRadios = document.querySelectorAll('#tab-print input[name="dpi"]');
   dpiRadios.forEach(radio => {
