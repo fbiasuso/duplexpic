@@ -2,6 +2,9 @@ import { initCanvas, renderSlot } from './modules/canvas.js';
 import { openFileDialog } from './modules/fileLoader.js';
 import { appState } from './modules/state.js';
 import { initToolbars, handleToolbarAction } from './modules/controls.js';
+import { initSidebar } from './modules/sidebar.js';
+import { initProperties } from './modules/properties.js';
+import { initZoom } from './modules/zoom.js';
 
 // Block F5 / Ctrl+R reload
 document.addEventListener('keydown', (e) => {
@@ -17,16 +20,28 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
   initToolbars();
   initCanvas();
+  initSidebar();
+  initProperties();
+  initZoom();
 
   appState.onChange(async (slot, config) => {
     await renderSlot(slot, config);
   });
 
-  // Click y contextmenu directo en cada slot
+  // Slot hover/click tracking for activeSlot
   const allSlots = document.querySelectorAll('.slot');
   allSlots.forEach(slot => {
+    // First hover sets activeSlot permanently (no mouseleave reset)
+    slot.addEventListener('mouseenter', () => {
+      if (appState.activeSlot === null) {
+        appState.setActiveSlot(slot.id);
+      }
+    });
+
+    // Click reinforces activeSlot + existing open-file behavior
     slot.addEventListener('click', (event) => {
       if (event.target.closest('.slot-toolbar')) return;
+      appState.setActiveSlot(slot.id);
       if (appState.isEmpty(slot.id)) {
         openFileDialog(slot.id);
       }
@@ -58,17 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  const globalToolbar = document.getElementById('global-toolbar');
-  if (globalToolbar) {
-    globalToolbar.addEventListener('click', (event) => {
-      const button = event.target.closest('button');
-      if (!button) return;
-      const action = button.dataset.action;
-      if (action) {
-        handleToolbarAction(action, null);
-      }
-    });
-  }
+  // Orientation class toggle on canvas
+  appState.onEvent('orientation', (v) => {
+    const canvas = document.getElementById('canvas');
+    canvas.classList.toggle('portrait', v === 'portrait');
+    canvas.classList.toggle('landscape', v === 'landscape');
+  });
 
   document.addEventListener('click', (event) => {
     const toolbar = event.target.closest('.slot-toolbar');

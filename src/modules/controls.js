@@ -16,14 +16,6 @@ const SLOT_TOOLBAR_HTML = `
   </div>
 `;
 
-const GLOBAL_TOOLBAR_HTML = `
-  <div id="global-toolbar">
-    <button data-action="swap" title="Intercambiar">⇅ Intercambiar</button>
-    <button data-action="print" title="Imprimir">🖨️ Imprimir</button>
-    <button data-action="clear-all" title="Limpiar todo">🗑️ Limpiar todo</button>
-  </div>
-`;
-
 export function initToolbars() {
   const slots = document.querySelectorAll('.slot');
   slots.forEach(slot => {
@@ -33,12 +25,6 @@ export function initToolbars() {
     toolbar.dataset.slotId = slot.id;
     slot.appendChild(toolbar);
   });
-
-  const app = document.getElementById('app');
-  const wrapper = document.createElement('div');
-  wrapper.innerHTML = GLOBAL_TOOLBAR_HTML;
-  const globalToolbar = wrapper.firstElementChild;
-  app.insertBefore(globalToolbar, document.getElementById('canvas'));
 }
 
 export function handleToolbarAction(action, slotId) {
@@ -159,6 +145,11 @@ export function handleToolbarAction(action, slotId) {
         bottomImg.style.opacity = '';
         overlay.remove();
       });
+      break;
+    }
+    case 'orientation': {
+      const newOrientation = appState.orientation === 'portrait' ? 'landscape' : 'portrait';
+      appState.setOrientation(newOrientation);
       break;
     }
     case 'print':
