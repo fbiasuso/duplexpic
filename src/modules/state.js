@@ -26,7 +26,8 @@ class AppState {
     this.orientation = 'portrait';
     this.zoom = 1.0;
     this.activeSlot = null;
-    this.margins = { top: 0, bottom: 0, left: 0, right: 0, gutter: 0 };
+    this.margins = { top: 10, bottom: 10, left: 10, right: 10, gutter: 5 };
+    this.committedMargins = { ...this.margins };
     this.activeTab = 'margins';
     this._eventListeners = {};
 
@@ -108,6 +109,14 @@ class AppState {
   setMargins(m) {
     Object.assign(this.margins, m);
     this._notifyEvent('margins', this.margins);
+  }
+
+  commitMargins() {
+    Object.assign(this.committedMargins, this.margins);
+  }
+
+  getCommittedMargins() {
+    return { ...this.committedMargins };
   }
 
   setActiveTab(t) {

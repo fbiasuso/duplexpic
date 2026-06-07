@@ -14,50 +14,103 @@ export function initProperties() {
     }
   });
 
-  appState.onEvent('margins', (margins) => {
-    // Update slider positions and value displays
-    const marginSliders = document.querySelectorAll('#tab-margins input[type="range"]');
-    marginSliders.forEach(slider => {
-      const key = slider.id.replace('margin-', '');
-      if (margins[key] !== undefined) {
-        slider.value = margins[key];
-        const valueEl = document.getElementById(slider.id + '-value');
-        if (valueEl) {
-          valueEl.textContent = margins[key] + ' mm';
-        }
-      }
-    });
-    renderMarginsOverlay(margins);
-  });
-
-  // ── Wire sliders to live value display ─────────────────────
+  // ── Sliders: live preview on drag + Apply / Cancel ───────
   const marginSliders = document.querySelectorAll('#tab-margins input[type="range"]');
+
+  /** Convert slider values (mm) to CSS px on the canvas element. */
+  function applyMarginsPreview(values) {
+    const canvas = document.getElementById('canvas');
+    if (!canvas) return;
+    const isLandscape = canvas.classList.contains('landscape');
+    const cw = canvas.clientWidth;
+    const ch = canvas.clientHeight;
+    // A4 reference in mm
+    const a4w = isLandscape ? 297 : 210;
+    const a4h = isLandscape ? 210 : 297;
+
+    const toPx = (mm, refPx, refMm) => (mm / refMm) * refPx;
+
+    const t = toPx(values.top || 0, ch, a4h);
+    const b = toPx(values.bottom || 0, ch, a4h);
+    const l = toPx(values.left || 0, cw, a4w);
+    const r = toPx(values.right || 0, cw, a4w);
+    const gapRef = isLandscape ? a4w : a4h;
+    const gapPx = isLandscape ? cw : ch;
+    const g = toPx(values.gutter || 0, gapPx, gapRef);
+
+    canvas.style.setProperty('--canvas-pad-top', t + 'px');
+    canvas.style.setProperty('--canvas-pad-bottom', b + 'px');
+    canvas.style.setProperty('--canvas-pad-left', l + 'px');
+    canvas.style.setProperty('--canvas-pad-right', r + 'px');
+    canvas.style.setProperty('--canvas-gap', g + 'px');
+
+    const hasMargins = Object.values(values).some(v => v > 0);
+    canvas.classList.toggle('margins-preview', hasMargins);
+  }
+
+  /** Read all slider values into { top, bottom, left, right, gutter }. */
+  function readSliderValues() {
+    const vals = {};
+    marginSliders.forEach(s => {
+      const key = s.id.replace('margin-', '');
+      vals[key] = parseInt(s.value, 10);
+    });
+    return vals;
+  }
+
+  // Live preview while dragging
   marginSliders.forEach(slider => {
     const valueEl = document.getElementById(slider.id + '-value');
     if (valueEl) {
       slider.addEventListener('input', () => {
         valueEl.textContent = slider.value + ' mm';
+        applyMarginsPreview(readSliderValues());
       });
     }
   });
 
-  // ── Apply margins button ──────────────────────────────────
+  // Apply — persist to state
   const applyBtn = document.querySelector('[data-action="apply-margins"]');
   if (applyBtn) {
     applyBtn.addEventListener('click', () => {
-      const margins = {};
-      marginSliders.forEach(slider => {
-        const key = slider.id.replace('margin-', '');
-        margins[key] = parseInt(slider.value, 10);
-      });
+      const margins = readSliderValues();
       appState.setMargins(margins);
-
-      // Visual feedback
+      appState.commitMargins();
       const origText = applyBtn.textContent;
       applyBtn.textContent = '✓ Aplicado';
       setTimeout(() => { applyBtn.textContent = origText; }, 1500);
     });
   }
+
+  // Cancel — revert sliders to last committed margins
+  const cancelBtn = document.querySelector('[data-action="cancel-margins"]');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      const committed = appState.getCommittedMargins();
+      marginSliders.forEach(slider => {
+        const key = slider.id.replace('margin-', '');
+        if (committed[key] !== undefined) {
+          slider.value = committed[key];
+          const valueEl = document.getElementById(slider.id + '-value');
+          if (valueEl) valueEl.textContent = committed[key] + ' mm';
+        }
+      });
+      applyMarginsPreview(committed);
+    });
+  }
+
+  // Sync slider UI from AppState (tab switch, orientation change, etc.)
+  appState.onEvent('margins', (margins) => {
+    marginSliders.forEach(slider => {
+      const key = slider.id.replace('margin-', '');
+      if (margins[key] !== undefined) {
+        slider.value = margins[key];
+        const valueEl = document.getElementById(slider.id + '-value');
+        if (valueEl) valueEl.textContent = margins[key] + ' mm';
+      }
+    });
+    applyMarginsPreview(margins);
+  });
 
   // ── Print tab: DPI radio buttons ──────────────────────────
   const dpiRadios = document.querySelectorAll('#tab-print input[name="dpi"]');
@@ -89,7 +142,7 @@ export function initProperties() {
 
   // ── Render initial state ──────────────────────────────────
   renderImageInfo(appState.activeSlot);
-  renderMarginsOverlay(appState.margins);
+  applyMarginsPreview(appState.margins);
 }
 
 function renderImageInfo(slotId) {
@@ -234,11 +287,4 @@ export async function triggerComposePrint() {
   }
 }
 
-function renderMarginsOverlay(margins) {
-  const slots = document.querySelectorAll('.slot');
-  const hasMargins = Object.values(margins).some(v => v > 0);
 
-  slots.forEach(slot => {
-    slot.classList.toggle('margins-active', hasMargins);
-  });
-}
