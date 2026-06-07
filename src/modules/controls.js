@@ -4,7 +4,14 @@ const SLOT_TOOLBAR_HTML = `
   <div class="slot-toolbar" data-slot-toolbar>
     <button data-action="rotate" title="Rotar 90°">↻ 90°</button>
     <button data-action="mirror" title="Espejar">⇔</button>
-    <button data-action="fit-toggle" title="Ajuste">▢</button>
+    <button data-action="fit-toggle" title="Ajuste">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 10 L2 14 L6 14" />
+        <path d="M14 6 L14 2 L10 2" />
+        <path d="M2 6 L2 2 L6 2" />
+        <path d="M14 10 L14 14 L10 14" />
+      </svg>
+    </button>
     <button data-action="clear" title="Limpiar">✕</button>
   </div>
 `;

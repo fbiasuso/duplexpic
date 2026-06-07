@@ -1,40 +1,98 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DuplexPic</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <div id="app">
-      <div id="canvas" class="a4-sheet">
-        <div id="slot-top" class="slot">
-          <div class="slot-placeholder">
-            <svg class="placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-              <circle cx="8.5" cy="8.5" r="1.5"/>
-              <polyline points="21,15 16,10 5,21"/>
-            </svg>
-            <span>Haga clic para cargar imagen superior</span>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DuplexPic</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+      <div class="global-buttons">
+        <button data-action="swap" title="Intercambiar">⇅ Intercambiar</button>
+        <button data-action="print" title="Imprimir">🖨️ Imprimir</button>
+        <button data-action="clear-all" title="Limpiar todo">🗑️ Limpiar todo</button>
+        <button data-action="orientation" title="Cambiar orientación">🔄 Orientación</button>
+      </div>
+      <div class="tabs-nav">
+        <button data-tab="margins" class="active">Márgenes</button>
+        <button data-tab="image">Imagen</button>
+      </div>
+      <div class="tab-content">
+        <div id="tab-margins" class="tab-pane active">
+          <div class="property-group">
+            <label>Margen superior</label>
+            <div class="value" id="margin-top-value">0 mm</div>
+            <input type="range" id="margin-top" min="0" max="20" step="1" value="0" />
           </div>
-          <div class="slot-loader"></div>
-          <img class="slot-image" src="" alt="Imagen superior" />
+          <div class="property-group">
+            <label>Margen inferior</label>
+            <div class="value" id="margin-bottom-value">0 mm</div>
+            <input type="range" id="margin-bottom" min="0" max="20" step="1" value="0" />
+          </div>
+          <div class="property-group">
+            <label>Margen izquierdo</label>
+            <div class="value" id="margin-left-value">0 mm</div>
+            <input type="range" id="margin-left" min="0" max="20" step="1" value="0" />
+          </div>
+          <div class="property-group">
+            <label>Margen derecho</label>
+            <div class="value" id="margin-right-value">0 mm</div>
+            <input type="range" id="margin-right" min="0" max="20" step="1" value="0" />
+          </div>
+          <div class="property-group">
+            <label>Medianil (gutter)</label>
+            <div class="value" id="margin-gutter-value">0 mm</div>
+            <input type="range" id="margin-gutter" min="0" max="20" step="1" value="0" />
+          </div>
+          <button data-action="apply-margins" class="apply-btn">Aplicar</button>
         </div>
-        <div id="slot-bottom" class="slot">
-          <div class="slot-placeholder">
-            <svg class="placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-              <circle cx="8.5" cy="8.5" r="1.5"/>
-              <polyline points="21,15 16,10 5,21"/>
-            </svg>
-            <span>Haga clic para cargar imagen inferior</span>
-          </div>
-          <div class="slot-loader"></div>
-          <img class="slot-image" src="" alt="Imagen inferior" />
+        <div id="tab-image" class="tab-pane">
+          <p class="slot-info-placeholder">Seleccioná un slot</p>
         </div>
       </div>
     </div>
-    <script type="module" src="app.js"></script>
-  </body>
+
+    <!-- CANVAS ZONE -->
+    <div id="canvas-zone">
+      <div class="canvas-wrapper">
+        <div id="canvas" class="a4-sheet portrait">
+          <div id="slot-top" class="slot">
+            <div class="slot-placeholder">
+              <svg class="placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21,15 16,10 5,21"/>
+              </svg>
+              <span>Haga clic para cargar imagen superior</span>
+            </div>
+            <div class="slot-loader"></div>
+            <img class="slot-image" src="" alt="Imagen superior" />
+          </div>
+          <div id="slot-bottom" class="slot">
+            <div class="slot-placeholder">
+              <svg class="placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21,15 16,10 5,21"/>
+              </svg>
+              <span>Haga clic para cargar imagen inferior</span>
+            </div>
+            <div class="slot-loader"></div>
+            <img class="slot-image" src="" alt="Imagen inferior" />
+          </div>
+        </div>
+      </div>
+      <div class="zoom-bar">
+        <button data-zoom="out" title="Alejar">−</button>
+        <input type="range" id="zoom-slider" min="50" max="200" value="100" />
+        <span class="zoom-label" id="zoom-label">100%</span>
+        <button data-zoom="in" title="Acercar">+</button>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="app.js"></script>
+</body>
 </html>
