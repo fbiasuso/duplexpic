@@ -211,11 +211,11 @@ export function initProperties() {
   });
 
   // ── Re-position persistent guides after zoom ────────────
-  // Must run after zoom.js applyZoom() updates canvas-inner dimensions.
-  // requestAnimationFrame ensures the layout has settled.
+  // Must read slider values (in-editing), NOT appState.margins (committed).
+  // requestAnimationFrame ensures layout settles after zoom.js applyZoom().
   appState.onEvent('zoom', () => {
     requestAnimationFrame(() => {
-      applyMarginsPreview(appState.margins);
+      applyMarginsPreview(readSliderValues());
       movedMargins.forEach(key => showGuide(key));
     });
   });
