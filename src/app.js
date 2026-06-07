@@ -3,10 +3,11 @@ import { openFileDialog } from './modules/fileLoader.js';
 import { appState } from './modules/state.js';
 import { initToolbars, handleToolbarAction } from './modules/controls.js';
 import { initSidebar } from './modules/sidebar.js';
-import { initProperties } from './modules/properties.js';
+import { initProperties, triggerComposePrint } from './modules/properties.js';
 import { initZoom } from './modules/zoom.js';
+import { getCurrentWebview } from '@tauri-apps/api/webview';
 
-// Block F5 / Ctrl+R reload
+// Block F5 / Ctrl+R reload; handle Ctrl+P for direct print
 document.addEventListener('keydown', (e) => {
   if (
     e.key === 'F5' ||
@@ -14,6 +15,10 @@ document.addEventListener('keydown', (e) => {
     (e.ctrlKey && e.shiftKey && (e.key === 'r' || e.key === 'R'))
   ) {
     e.preventDefault();
+  }
+  if (e.ctrlKey && (e.key === 'p' || e.key === 'P')) {
+    e.preventDefault();
+    triggerComposePrint();
   }
 });
 
@@ -52,24 +57,34 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Drag & drop
-    slot.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      slot.classList.add('drag-over');
-    });
+  });
 
-    slot.addEventListener('dragleave', () => {
-      slot.classList.remove('drag-over');
-    });
+  // Drag & drop via Tauri native API (HTML5 events are suppressed by the webview)
+  (async () => {
+    const webview = getCurrentWebview();
+    await webview.onDragDropEvent((event) => {
+      const { type, position, paths } = event.payload;
+      const el = document.elementFromPoint(position.x, position.y);
+      const slot = el?.closest('.slot');
 
-    slot.addEventListener('drop', (e) => {
-      e.preventDefault();
-      slot.classList.remove('drag-over');
-      if (appState.isEmpty(slot.id)) {
-        openFileDialog(slot.id);
+      if (type === 'over' || type === 'enter') {
+        // Remove highlight from all slots, add to current
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('drag-over'));
+        if (slot) slot.classList.add('drag-over');
+      }
+
+      if (type === 'leave') {
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('drag-over'));
+      }
+
+      if (type === 'drop') {
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('drag-over'));
+        if (slot && paths?.[0] && appState.isEmpty(slot.id)) {
+          appState.setImage(slot.id, paths[0]);
+        }
       }
     });
-  });
+  })();
 
   // Orientation class toggle on canvas
   appState.onEvent('orientation', (v) => {

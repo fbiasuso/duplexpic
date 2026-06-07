@@ -20,7 +20,7 @@ Una aplicación de escritorio nativa desarrollada en **Rust** que proporcione un
 * **Framework de Interfaz Gráfica (GUI):** **Tauri v2** (Frontend utilizando HTML5/CSS3/JavaScript o TypeScript básico, Backend en Rust).
     * *Razón:* Permite diseñar una interfaz limpia, responsiva y moderna rápidamente con CSS, delegando el control del sistema de archivos y el procesamiento de imágenes a Rust a través de comandos seguros.
 * **Procesamiento de Imágenes (Backend):** Librería `image` de Rust (para decodificar, rotar, espejar y componer el lienzo final si fuera necesario).
-* **Motor de Impresión:** Uso de las capacidades de impresión del webview nativo (`window.print()` mediante Tauri) configurando estilos CSS específicos para impresión (`@media print`), garantizando que lo que se ve en el layout web se traslade exactamente al papel sin reajustes de Windows.
+* **Motor de Impresión:** Pipeline Rust nativo. Composición de imágenes en lienzo A4 con `image` crate, generación de PDF con `printpdf`, envío directo a cola de impresión via PowerShell (`Start-Process -Verb Print`). Sin dependencia de `window.print()` del navegador.
 
 ---
 
@@ -42,14 +42,15 @@ Cada contenedor (Superior e Inferior) debe contar con una pequeña barra de herr
 
 ### 3.3. Controles Globales de la Aplicación
 * **Botón Intercambiar (Swap):** Cambia la imagen de la mitad superior a la mitad inferior y viceversa con un solo clic, manteniendo las rotaciones individuales que ya se les hayan aplicado.
-* **Botón Imprimir:** Abre el diálogo de impresión nativo del sistema operativo a través del motor del navegador. El CSS de impresión debe forzar márgenes en cero y asegurar que cada contenedor ocupe exactamente el 50% del alto de la página impresa.
+* **Botón Imprimir:** Genera un PDF con la composición final al DPI seleccionado y abre el diálogo de impresión del sistema. Opción de previsualización (Preview) que muestra el PNG compuesto por Rust antes de imprimir.
 * **Botón Limpiar Todo:** Restablece la aplicación a su estado inicial.
 
 ---
 
 ## 4. Requisitos No Funcionales y Experiencia de Usuario
 
-* **Portabilidad Extrema:** El programa compilado para Windows debe ser un único archivo `.exe` ejecutable que funcione de manera "portable" (sin instalador), consumiendo menos de 20 MB de memoria RAM en reposo.
+* **Distribución Dual:** El build de producción debe generar tanto un `.exe` portable (ejecutable autónomo, sin instalación) como un instalador (NSIS `.exe` + MSI). El usuario puede elegir según sus necesidades.
+* **Portabilidad:** El ejecutable portable debe funcionar sin instalador, sin dependencias externas, consumiendo menos de 20 MB de RAM en reposo.
 * **Multiplataforma Nativo:** El código debe estructurarse de manera que el mismo backend de Rust y frontend de HTML/CSS pueda compilarse de manera nativa en Linux sin requerir refactorizaciones de lógica interna.
 * **Restricciones de Hardware del Usuario:** El usuario final posee una impresora monocromática **HP LaserJet M1120 MFP** (sin dúplex automático). La aplicación debe facilitar la maquetación visual simple para que el usuario pueda posteriormente realizar impresiones a doble cara de forma manual sin confusión sobre el orden de las páginas.
 
@@ -73,7 +74,7 @@ Implementa las funciones de JavaScript para:
 
 ### Paso 4: Backend en Rust (Procesamiento y Seguridad)
 * Configura los permisos de Tauri (`capabilities`) para permitir el acceso a archivos de imagen locales mediante protocolos personalizados (por ejemplo, `asset://`) para que las imágenes se previsualicen correctamente sin violar políticas de seguridad.
-* Si la impresión nativa por navegador presenta problemas de dimensiones con imágenes de muy alta resolución, implementa un comando de Rust que tome los paths de ambas imágenes, aplique las rotaciones reales sobre los píxeles usando la crate `image`, genere una imagen combinada A4 final o un PDF intermedio, y use los comandos del sistema para mandarlo a la cola de impresión predeterminada de Windows.
+* Implementa un comando `compose_print` en Rust que tome los paths de ambas imágenes, aplique rotaciones y mirror sobre los píxeles usando la crate `image`, componga un lienzo A4 con márgenes y gutter, genere un PDF con `printpdf`, y lo envíe a la cola de impresión via PowerShell.
 
 ### Paso 5: Pulido de Detalles
 Asegúrate de desactivar el menú contextual predeterminado del navegador en producción y los atajos de recarga (F5) para que se comporte verdaderamente como una aplicación de escritorio nativa e independiente.

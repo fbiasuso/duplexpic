@@ -29,6 +29,10 @@ class AppState {
     this.margins = { top: 0, bottom: 0, left: 0, right: 0, gutter: 0 };
     this.activeTab = 'margins';
     this._eventListeners = {};
+
+    this.dpi = 300;
+    this.printPreviewMode = false;
+    this.composedUrl = null;
   }
 
   setImage(slot, path) {
@@ -109,6 +113,21 @@ class AppState {
   setActiveTab(t) {
     this.activeTab = t;
     this._notifyEvent('activeTab', t);
+  }
+
+  setDpi(v) {
+    this.dpi = v;
+    this._notifyEvent('dpi', v);
+  }
+
+  setPrintPreviewMode(v) {
+    this.printPreviewMode = v;
+    this._notifyEvent('printPreviewMode', v);
+  }
+
+  setComposedUrl(v) {
+    this.composedUrl = v;
+    this._notifyEvent('composedUrl', v);
   }
 
   onEvent(key, callback) {

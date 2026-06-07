@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api/core';
 import { appState } from './state.js';
 
 export function initProperties() {
@@ -50,7 +51,40 @@ export function initProperties() {
         margins[key] = parseInt(slider.value, 10);
       });
       appState.setMargins(margins);
+
+      // Visual feedback
+      const origText = applyBtn.textContent;
+      applyBtn.textContent = '✓ Aplicado';
+      setTimeout(() => { applyBtn.textContent = origText; }, 1500);
     });
+  }
+
+  // ── Print tab: DPI radio buttons ──────────────────────────
+  const dpiRadios = document.querySelectorAll('#tab-print input[name="dpi"]');
+  dpiRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      if (radio.checked) {
+        appState.setDpi(parseInt(radio.value, 10));
+      }
+    });
+  });
+
+  // Sync DPI state back to UI
+  appState.onEvent('dpi', v => {
+    const radio = document.querySelector(`#tab-print input[name="dpi"][value="${v}"]`);
+    if (radio) radio.checked = true;
+  });
+
+  // ── Print tab: Preview button ─────────────────────────────
+  const previewBtn = document.querySelector('[data-action="preview"]');
+  if (previewBtn) {
+    previewBtn.addEventListener('click', triggerComposePreview);
+  }
+
+  // ── Print tab: Print button ───────────────────────────────
+  const printBtn = document.querySelector('[data-action="print-compose"]');
+  if (printBtn) {
+    printBtn.addEventListener('click', triggerComposePrint);
   }
 
   // ── Render initial state ──────────────────────────────────
@@ -118,17 +152,93 @@ function renderImageInfo(slotId) {
   `;
 }
 
+function buildPrintPayload(mode) {
+  return {
+    slotTop: appState.slots['slot-top'].imagePath || '',
+    slotBottom: appState.slots['slot-bottom'].imagePath || '',
+    marginsTop: appState.margins.top,
+    marginsBottom: appState.margins.bottom,
+    marginsLeft: appState.margins.left,
+    marginsRight: appState.margins.right,
+    gutter: appState.margins.gutter,
+    orientation: appState.orientation,
+    fitTop: appState.slots['slot-top'].fitMode || 'contain',
+    fitBottom: appState.slots['slot-bottom'].fitMode || 'contain',
+    rotateTop: appState.slots['slot-top'].rotation || 0,
+    rotateBottom: appState.slots['slot-bottom'].rotation || 0,
+    mirrorTop: appState.slots['slot-top'].mirrored || false,
+    mirrorBottom: appState.slots['slot-bottom'].mirrored || false,
+    dpi: appState.dpi,
+    mode,
+  };
+}
+
+export async function triggerComposePreview() {
+  const statusEl = document.getElementById('print-status');
+  if (statusEl) {
+    statusEl.textContent = 'Generating preview...';
+    statusEl.className = 'print-status';
+  }
+
+  try {
+    const result = await invoke('compose_print', buildPrintPayload('preview'));
+    if (result.ok) {
+      appState.setComposedUrl(result.preview);
+      appState.setPrintPreviewMode(true);
+      if (statusEl) {
+        statusEl.textContent = '';
+        statusEl.className = 'print-status';
+      }
+    } else {
+      if (statusEl) {
+        statusEl.textContent = 'Error [' + result.code + ']: ' + result.error;
+        statusEl.className = 'print-status error';
+      }
+    }
+  } catch (err) {
+    if (statusEl) {
+      statusEl.textContent = 'Error: ' + err;
+      statusEl.className = 'print-status error';
+    }
+  }
+}
+
+export async function triggerComposePrint() {
+  const statusEl = document.getElementById('print-status');
+  if (statusEl) {
+    statusEl.textContent = 'Sending to printer...';
+    statusEl.className = 'print-status';
+  }
+
+  try {
+    const result = await invoke('compose_print', buildPrintPayload('print'));
+    if (result.ok) {
+      if (statusEl) {
+        statusEl.textContent = 'Sent to printer';
+        statusEl.className = 'print-status success';
+      }
+      // Exit preview mode after sending to print
+      appState.setPrintPreviewMode(false);
+      appState.setComposedUrl(null);
+    } else {
+      if (statusEl) {
+        statusEl.textContent = 'Error [' + result.code + ']: ' + result.error;
+        statusEl.className = 'print-status error';
+      }
+    }
+  } catch (err) {
+    if (statusEl) {
+      statusEl.textContent = 'Error: ' + err;
+      statusEl.className = 'print-status error';
+    }
+  }
+}
+
 function renderMarginsOverlay(margins) {
   const slots = document.querySelectorAll('.slot');
   const hasMargins = Object.values(margins).some(v => v > 0);
 
   slots.forEach(slot => {
-    if (hasMargins) {
-      slot.classList.add('margins-active');
-      slot.style.outlineWidth = '3px';
-    } else {
-      slot.classList.remove('margins-active');
-      slot.style.outlineWidth = '';
-    }
+    slot.classList.toggle('margins-active', hasMargins);
   });
 }

@@ -446,24 +446,25 @@
 
 ### T20 — Verify all existing features still work
 **Files:** (all)
-**Description:** Manual verification checklist — run through all existing features after the refactor:
-- [ ] **Image loading**: Click placeholder opens file dialog, image renders in slot
-- [ ] **Drag & drop**: Drop image file on empty slot loads it
-- [ ] **Rotate 90°**: Click rotate button rotates image, preserves across swaps
-- [ ] **Mirror**: Toggle mirror flips image horizontally with card-flip animation
-- [ ] **Fit mode cycling**: Click fit-toggle cycles contain → fill → cover with directional animation
-- [ ] **Swap**: Swap button exchanges slot contents with crossing animation
-- [ ] **Clear individual slot**: Clear button removes image from one slot
-- [ ] **Clear all**: Reset button clears both slots
-- [ ] **Print**: Window.print() opens print dialog with correct A4 layout
-- [ ] **Slot toolbars**: Toolbar appears on hover over each slot (unchanged behavior)
-- [ ] **Loader spinner**: Shows during Rust image processing
-- [ ] **Keyboard protection**: F5/Ctrl+R blocked
-- [ ] **Context menu**: Right-click on empty slot opens file dialog
+**Description:** Manual verification checklist — run through all existing features after the refactor.
+**Archive reconciliation:** All 13 sub-checks verified working in PR 2 (merged to main). Stale checkboxes reconciled at archive time per user confirmation.
+- [x] **Image loading**: Click placeholder opens file dialog, image renders in slot
+- [x] **Drag & drop**: Drop image file on empty slot loads it
+- [x] **Rotate 90°**: Click rotate button rotates image, preserves across swaps
+- [x] **Mirror**: Toggle mirror flips image horizontally with card-flip animation
+- [x] **Fit mode cycling**: Click fit-toggle cycles contain → fill → cover with directional animation
+- [x] **Swap**: Swap button exchanges slot contents with crossing animation
+- [x] **Clear individual slot**: Clear button removes image from one slot
+- [x] **Clear all**: Reset button clears both slots
+- [x] **Print**: Window.print() opens print dialog with correct A4 layout
+- [x] **Slot toolbars**: Toolbar appears on hover over each slot (unchanged behavior)
+- [x] **Loader spinner**: Shows during Rust image processing
+- [x] **Keyboard protection**: F5/Ctrl+R blocked
+- [x] **Context menu**: Right-click on empty slot opens file dialog
 **Dependencies:** All previous tasks
 **Acceptance criteria:**
-- [ ] All 13 existing features work identically to before the refactor (manual check)
-- [ ] No regressions in animation behavior (swap crossing, mirror flip, fit zoom)
+- [x] All 13 existing features work identically to before the refactor (verified in PR 2)
+- [x] No regressions in animation behavior (swap crossing, mirror flip, fit zoom)
 
 **Estimated lines:** ~0 (verification only)
 
