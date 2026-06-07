@@ -44,11 +44,20 @@ export function initSidebar() {
     });
   });
 
-  // ── Sync orientation button text on event ──────────────
-  appState.onEvent('orientation', (v) => {
+  // ── Sync orientation button text + icon on event ───────
+  const ORIENTATION_ICONS = {
+    portrait: '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="1" width="8" height="16" rx="1.5"/></svg>',
+    landscape: '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="16" height="8" rx="1.5"/></svg>',
+  };
+
+  function updateOrientationButton(v) {
     const btn = document.querySelector('[data-action="orientation"]');
-    if (btn) {
-      btn.textContent = v === 'portrait' ? '🔄 Vista Horizontal' : '🔄 Vista Vertical';
-    }
-  });
+    if (!btn) return;
+    btn.innerHTML = ORIENTATION_ICONS[v] + ' <span>' + (v === 'portrait' ? 'Vista Vertical' : 'Vista Horizontal') + '</span>';
+  }
+
+  appState.onEvent('orientation', updateOrientationButton);
+
+  // ── Set initial state ──────────────────────────────────
+  setTimeout(() => updateOrientationButton(appState.orientation), 0);
 }

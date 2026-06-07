@@ -1,13 +1,16 @@
 import { appState } from './state.js';
 
+const ORIENTATION_SIZES = {
+  portrait: { w: 595, h: 842 },
+  landscape: { w: 842, h: 595 },
+};
+
 export function initZoom() {
   const slider = document.getElementById('zoom-slider');
   const zoomOut = document.querySelector('[data-zoom="out"]');
   const zoomIn = document.querySelector('[data-zoom="in"]');
   const label = document.getElementById('zoom-label');
-  const canvasWrapper = document.querySelector('.canvas-wrapper');
-
-  if (!slider || !canvasWrapper) return;
+  if (!slider) return;
 
   // ── Slider input → zoom ──────────────────────────────────
   slider.addEventListener('input', () => {
@@ -35,11 +38,6 @@ export function initZoom() {
     if (label) {
       label.textContent = Math.round(level * 100) + '%';
     }
-    // Show scroll when zoomed in, hide when auto-fitted
-    const canvasZone = document.getElementById('canvas-zone');
-    if (canvasZone) {
-      canvasZone.style.overflow = level > 1.0 ? 'auto' : 'hidden';
-    }
   });
 
   // ── Recalculate on orientation change ────────────────────
@@ -47,9 +45,9 @@ export function initZoom() {
     calculateFit();
   });
 
-  // ── Initial zoom at 67% for restored window ──────────────
+  // ── Initial fit on next frame ────────────────────────────
   setTimeout(() => {
-    appState.setZoom(0.67);
+    calculateFit();
   }, 50);
 
   // ── Window resize (debounced) ────────────────────────────
@@ -64,17 +62,16 @@ export function initZoom() {
 
 function calculateFit() {
   const canvas = document.getElementById('canvas');
-  const canvasWrapper = document.querySelector('.canvas-wrapper');
-  if (!canvas || !canvasWrapper) return;
+  const scroll = document.getElementById('canvas-scroll');
+  if (!canvas || !scroll) return;
 
   const isPortrait = appState.orientation === 'portrait';
-  const canvasW = isPortrait ? 595 : 842;
-  const canvasH = isPortrait ? 842 : 595;
+  const size = ORIENTATION_SIZES[appState.orientation];
+  const canvasW = size.w;
+  const canvasH = size.h;
 
-  // canvas-wrapper has flex:1 inside canvas-zone, so its dimensions
-  // reflect the actual available space (minus zoom-bar and padding)
-  const availW = canvasWrapper.clientWidth - 32;
-  const availH = canvasWrapper.clientHeight - 32;
+  const availW = scroll.clientWidth - 32;
+  const availH = scroll.clientHeight - 32;
 
   if (availW <= 0 || availH <= 0) return;
 
@@ -86,8 +83,13 @@ function calculateFit() {
 }
 
 function applyZoom(level) {
-  const canvas = document.getElementById('canvas');
-  if (canvas) {
-    canvas.style.transform = 'scale(' + level + ')';
-  }
+  const inner = document.getElementById('canvas-inner');
+  if (!inner) return;
+
+  const isPortrait = appState.orientation === 'portrait';
+  const baseW = isPortrait ? 595 : 842;
+  const baseH = isPortrait ? 842 : 595;
+
+  inner.style.width = (baseW * level) + 'px';
+  inner.style.height = (baseH * level) + 'px';
 }
