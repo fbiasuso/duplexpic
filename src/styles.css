@@ -8,20 +8,155 @@
 body {
   background: #2c2c2c;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* ===== LAYOUT ===== */
+#app {
   display: flex;
+  flex-direction: row;
+  height: 100vh;
+  width: 100%;
+}
+
+#sidebar {
+  width: 260px;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a1a;
+  padding: 16px;
+  overflow-y: auto;
+  color: #e0e0e0;
+}
+
+#canvas-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-  padding: 2rem;
+  overflow: hidden;
+  background: #2c2c2c;
+}
+
+.canvas-wrapper {
+  transform-origin: center center;
+  transition: transform 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== SIDEBAR INTERNALS ===== */
+.global-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.global-buttons button {
+  background: #333;
+  color: white;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+.global-buttons button:hover {
+  background: #444;
+}
+
+.tabs-nav {
+  display: flex;
+  border-bottom: 1px solid #333;
+}
+
+.tabs-nav button {
+  flex: 1;
+  padding: 8px;
+  background: none;
+  color: #999;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tabs-nav button.active {
+  color: #fff;
+  border-bottom: 2px solid #4a9eff;
+}
+
+.tabs-nav button:hover {
+  color: #ccc;
+}
+
+.tab-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 0;
+}
+
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+.property-group {
+  margin: 12px 0;
+}
+
+.property-group label {
+  display: block;
+  font-size: 0.85rem;
+  color: #aaa;
+  margin-bottom: 4px;
+}
+
+.property-group .value {
+  font-size: 0.95rem;
+  color: #e0e0e0;
+  margin-bottom: 4px;
+}
+
+.property-group input[type="range"] {
+  width: 100%;
+  accent-color: #4a9eff;
+}
+
+.apply-btn {
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  background: #4a9eff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.apply-btn:hover {
+  background: #3a8eef;
+}
+
+.slot-info-placeholder {
+  color: #666;
+  text-align: center;
+  padding: 24px 8px;
+  font-size: 0.9rem;
 }
 
 /* ===== CANVAS ===== */
-#app {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
-
 #canvas.a4-sheet {
   width: 595px;
   height: 842px;
@@ -46,6 +181,23 @@ body {
 
 #slot-top {
   border-bottom: 2px solid #e0e0e0;
+}
+
+/* ===== LANDSCAPE ===== */
+.a4-sheet.landscape {
+  width: 842px;
+  height: 595px;
+}
+
+.a4-sheet.landscape .slot {
+  width: 50%;
+  height: 100%;
+  min-height: auto;
+}
+
+#slot-top.landscape {
+  border-bottom: none;
+  border-right: 2px solid #e0e0e0;
 }
 
 .slot-placeholder {
@@ -242,27 +394,47 @@ body {
   background: rgba(255, 255, 255, 0.4);
 }
 
-#global-toolbar {
+/* ===== ZOOM BAR ===== */
+.zoom-bar {
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 12px;
   padding: 12px;
   background: #1a1a1a;
-  border-bottom: 1px solid #333;
+  width: 100%;
 }
 
-#global-toolbar button {
+.zoom-bar button {
   background: #333;
   color: white;
   border: 1px solid #555;
-  border-radius: 6px;
-  padding: 8px 16px;
+  border-radius: 4px;
+  padding: 6px 14px;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
 }
 
-#global-toolbar button:hover {
+.zoom-bar button:hover {
   background: #444;
+}
+
+#zoom-slider {
+  width: 160px;
+  accent-color: #4a9eff;
+}
+
+.zoom-label {
+  color: #aaa;
+  font-size: 0.85rem;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* ===== MARGINS OVERLAY ===== */
+.slot.margins-active {
+  outline-style: dashed;
+  outline-color: rgba(74, 158, 255, 0.6);
 }
 
 /* ===== PRINT ===== */
@@ -274,13 +446,26 @@ body {
 
   body {
     background: white;
+    margin: 0;
     padding: 0;
     min-height: auto;
+    overflow: visible;
   }
 
   #app {
+    display: block;
     width: 210mm;
     height: 297mm;
+  }
+
+  #canvas-zone {
+    justify-content: flex-start;
+    background: white;
+    overflow: visible;
+  }
+
+  .canvas-wrapper {
+    transform: none !important;
   }
 
   #canvas.a4-sheet {
@@ -313,8 +498,15 @@ body {
     height: 100%;
   }
 
-  .slot-toolbar,
-  #global-toolbar {
+  #sidebar,
+  .zoom-bar,
+  .slot-toolbar {
     display: none !important;
+  }
+
+  /* Landscape print */
+  .a4-sheet.landscape {
+    width: 297mm;
+    height: 210mm;
   }
 }
