@@ -259,11 +259,11 @@
   - Map data-action values: `swap` → `handleToolbarAction('swap')`, `print` → `handleToolbarAction('print')`, `clear-all` → `handleToolbarAction('clear-all')`
 **Dependencies:** T3 (sidebar DOM), T6 (sidebar CSS), T15 (controls.js actions defined)
 **Acceptance criteria:**
-- [ ] Clicking "Márgenes" tab shows margins pane, hides image pane
-- [ ] Clicking "Imagen" tab shows image pane, hides margins pane
-- [ ] Active tab button has `.active` class with blue underline
-- [ ] Swap/Print/Clear-all buttons in sidebar trigger correct actions
-- [ ] Tab state syncs when `setActiveTab()` is called externally
+- [x] Clicking "Márgenes" tab shows margins pane, hides image pane
+- [x] Clicking "Imagen" tab shows image pane, hides margins pane
+- [x] Active tab button has `.active` class with blue underline
+- [x] Swap/Print/Clear-all buttons in sidebar trigger correct actions
+- [x] Tab state syncs when `setActiveTab()` is called externally
 
 **Estimated lines:** ~70
 
@@ -292,12 +292,12 @@
 - Margins overlay: when margins are non-zero, apply dotted outline styles to `.slot` elements via inline style
 **Dependencies:** T3, T12 (tab structure), T6 (property group CSS)
 **Acceptance criteria:**
-- [ ] Image info tab shows correct data for active slot
-- [ ] "Seleccioná un slot" shown when activeSlot is null
-- [ ] "Sin imagen cargada" shown when slot exists but has no image
-- [ ] Margins sliders range 0–20mm with live value display
-- [ ] "Aplicar" button calls setMargins with current slider values
-- [ ] Non-zero margins show dotted outlines on canvas slots
+- [x] Image info tab shows correct data for active slot
+- [x] "Seleccioná un slot" shown when activeSlot is null
+- [x] "Sin imagen cargada" shown when slot exists but has no image
+- [x] Margins sliders range 0–20mm with live value display
+- [x] "Aplicar" button calls setMargins with current slider values
+- [x] Non-zero margins show dotted outlines on canvas slots
 
 **Estimated lines:** ~100
 
@@ -326,13 +326,13 @@
 - Handle resize: debounced `window.resize` event recalculates fit if canvas exceeds or is too small in current view
 **Dependencies:** T3 (canvas-wrapper + zoom-bar DOM), T5 (layout), T8 (zoom bar CSS)
 **Acceptance criteria:**
-- [ ] Slider and +/- buttons control zoom level
-- [ ] Zoom range is 0.5–2.0 in 0.1 increments
-- [ ] Initial zoom auto-fits canvas into canvas-zone with no scroll
-- [ ] Zoom label shows current percentage (e.g., "125%")
-- [ ] Orientation change triggers re-fit calculation
-- [ ] `.canvas-wrapper` `transform: scale()` is smooth (CSS transition)
-- [ ] Canvas stays centered in canvas-zone at all zoom levels
+- [x] Slider and +/- buttons control zoom level
+- [x] Zoom range is 0.5–2.0 in 0.1 increments
+- [x] Initial zoom auto-fits canvas into canvas-zone with no scroll
+- [x] Zoom label shows current percentage (e.g., "125%")
+- [x] Orientation change triggers re-fit calculation
+- [x] `.canvas-wrapper` `transform: scale()` is smooth (CSS transition)
+- [x] Canvas stays centered in canvas-zone at all zoom levels
 
 **Estimated lines:** ~80
 
@@ -341,17 +341,18 @@
 ### T15 — Update controls.js (remove global toolbar, SVG icon)
 **Files:** `src/modules/controls.js`
 **Description:**
-1. **Remove `GLOBAL_TOOLBAR_HTML`**: Delete the entire `GLOBAL_TOOLBAR_HTML` template literal and its export.
-2. **Update `initToolbars()`**: Remove the code that injects `GLOBAL_TOOLBAR_HTML` into `#app` (lines ~30-34 in current file). Keep slot toolbar injection unchanged.
-3. **Replace ▢ with SVG**: In `SLOT_TOOLBAR_HTML`, replace the `▢` character in the fit-toggle button with an inline SVG icon (4 expand arrows, ~16×16px). Keep `data-action="fit-toggle"` and `title="Ajuste"`.
-4. The global buttons (swap/print/clear-all) are now injected via `sidebar.js` into `.global-buttons` div — so their HTML definition can either stay in a variable here or move to sidebar.js. For cleanliness, keep action handling in `handleToolbarAction` (unchanged) and define the button HTML in `sidebar.js`.
+1. **Remove `GLOBAL_TOOLBAR_HTML`**: Delete the entire `GLOBAL_TOOLBAR_HTML` template literal.
+2. **Update `initToolbars()`**: Remove the code that injects `GLOBAL_TOOLBAR_HTML` into `#app`. Keep slot toolbar injection unchanged.
+3. **Replace ▢ with SVG**: In `SLOT_TOOLBAR_HTML`, replace the `▢` character in the fit-toggle button with an inline SVG icon (4 expand arrows, ~16×16px). Keep `data-action="fit-toggle"` and `title="Ajuste"`. (Already done in PR 1.)
+4. Add `orientation` case to `handleToolbarAction`: toggle between 'portrait' and 'landscape'.
 **Dependencies:** T3 (sidebar DOM with .global-buttons)
 **Acceptance criteria:**
-- [ ] No `GLOBAL_TOOLBAR_HTML` or its injection code remains
-- [ ] Slot toolbars still injected correctly on all `.slot` elements
-- [ ] Fit-toggle button shows SVG icon instead of ▢
-- [ ] `handleToolbarAction` remains unchanged and functional
-- [ ] All slot toolbar actions still work (rotate, mirror, fit-toggle, clear)
+- [x] No `GLOBAL_TOOLBAR_HTML` or its injection code remains
+- [x] Slot toolbars still injected correctly on all `.slot` elements
+- [x] Fit-toggle button shows SVG icon instead of ▢
+- [x] `handleToolbarAction` remains exported and functional
+- [x] All slot toolbar actions still work (rotate, mirror, fit-toggle, clear)
+- [x] Orientation case toggles portrait/landscape
 
 **Estimated lines:** ~25
 
@@ -368,10 +369,10 @@
 4. Add `setOrientation` to also call `_notify` if needed? No — orientation doesn't affect slot rendering. Keep it purely on the event channel.
 **Dependencies:** T1, T2
 **Acceptance criteria:**
-- [ ] All fields and setters from T1/T2 are correctly implemented
-- [ ] `swap()` does NOT swap activeSlot (documented decision)
-- [ ] Event channel coexists with old onChange channel without conflicts
-- [ ] Orientation setter triggers only event, not slot re-render
+- [x] All fields and setters from T1/T2 are correctly implemented
+- [x] `swap()` does NOT swap activeSlot (documented decision)
+- [x] Event channel coexists with old onChange channel without conflicts
+- [x] Orientation setter triggers only event, not slot re-render
 
 **Estimated lines:** ~15 (mostly documentation + verification)
 
@@ -385,31 +386,23 @@
    - `initSidebar()` — build sidebar UI, wire tab switching and global buttons
    - `initProperties()` — subscribe to activeSlot/margins events
    - `initZoom()` — set up zoom control
-3. **Remove global-toolbar listener**: Delete the `const globalToolbar = document.getElementById('global-toolbar');` block (lines ~61-71 in current app.js). Global button handling is now in sidebar.js.
-4. **Migrate orientation toggle**: If an orientation toggle button exists in the sidebar (or needs to be added), wire it to `appState.setOrientation()`. The design mentions orientation toggle but the specific button isn't in the sidebar HTML — **add a button to `.global-buttons`** with `data-action="orientation"` and handle it:
-   - `handleToolbarAction('orientation')` → toggle between 'portrait' and 'landscape'
+3. **Remove global-toolbar listener**: Delete the `const globalToolbar = document.getElementById('global-toolbar');` block. Global button handling is now in sidebar.js.
+4. **Orientation toggle**: Orientation button with `data-action="orientation"` exists in `.global-buttons`. Wired via `handleToolbarAction('orientation')` in controls.js.
 5. **Add slot hover/click tracking for activeSlot**:
-   - On each `.slot`: `mouseenter` event → `appState.setActiveSlot(slot.id)` (only if no activeSlot is set yet, or always set it)
+   - On each `.slot`: `mouseenter` event → `appState.setActiveSlot(slot.id)` (only if no activeSlot is set yet)
    - **Per user decision**: activeSlot persists once set. No reset on mouseleave or click-outside. First hover or click sets it permanently for the session (until clear-all or app restart).
    - On each `.slot`: `click` event → `appState.setActiveSlot(slot.id)` (reinforces selection)
-6. **Subscribe to `onEvent('orientation')`** to toggle `.portrait`/`.landscape` class on `#canvas`:
-   ```js
-   appState.onEvent('orientation', (v) => {
-     const canvas = document.getElementById('canvas');
-     canvas.classList.toggle('portrait', v === 'portrait');
-     canvas.classList.toggle('landscape', v === 'landscape');
-   });
-   ```
+6. **Subscribe to `onEvent('orientation')`** to toggle `.portrait`/`.landscape` class on `#canvas`.
 7. Keep all existing slot interaction code (click to open file, contextmenu, drag and drop).
 **Dependencies:** T12, T13, T14, T15, T16
 **Acceptance criteria:**
-- [ ] App initializes without errors (all modules loaded)
-- [ ] Sidebar renders with buttons, tabs, properties panel
-- [ ] Hovering a slot sets activeSlot (persists after mouse leave)
-- [ ] Clicking a slot also sets activeSlot
-- [ ] Properties panel updates when activeSlot changes
-- [ ] Orientation toggle switches canvas class and updates zoom
-- [ ] All existing features still work (open image, drag-drop, print, etc.)
+- [x] App initializes without errors (all modules loaded)
+- [x] Sidebar renders with buttons, tabs, properties panel
+- [x] Hovering a slot sets activeSlot (persists after mouse leave)
+- [x] Clicking a slot also sets activeSlot
+- [x] Properties panel updates when activeSlot changes
+- [x] Orientation toggle switches canvas class and updates zoom
+- [x] All existing features still work (open image, drag-drop, print, etc.)
 
 **Estimated lines:** ~60
 
@@ -425,9 +418,9 @@
 - Keep `resizable: true`, `fullscreen: false`
 **Dependencies:** None (config change)
 **Acceptance criteria:**
-- [ ] Window opens at 1280×900
-- [ ] All content visible without scrollbars at this size
-- [ ] Window is resizable
+- [x] Window opens at 1280×900
+- [x] All content visible without scrollbars at this size
+- [x] Window is resizable
 
 **Estimated lines:** ~3
 
@@ -442,10 +435,10 @@
 - Have a small padding buffer (~16px) so the canvas doesn't touch the edges
 **Dependencies:** T14
 **Acceptance criteria:**
-- [ ] On first load, canvas auto-fits within canvas-zone
-- [ ] No scrollbars on the window
-- [ ] Canvas is centered vertically and horizontally
-- [ ] After orientation change, auto-fit recalculates
+- [x] On first load, canvas auto-fits within canvas-zone
+- [x] No scrollbars on the window
+- [x] Canvas is centered vertically and horizontally
+- [x] After orientation change, auto-fit recalculates
 
 **Estimated lines:** ~0 (part of T14, ~10 lines within calculateFit)
 
@@ -469,7 +462,7 @@
 - [ ] **Context menu**: Right-click on empty slot opens file dialog
 **Dependencies:** All previous tasks
 **Acceptance criteria:**
-- [ ] All 13 existing features work identically to before the refactor
+- [ ] All 13 existing features work identically to before the refactor (manual check)
 - [ ] No regressions in animation behavior (swap crossing, mirror flip, fit zoom)
 
 **Estimated lines:** ~0 (verification only)

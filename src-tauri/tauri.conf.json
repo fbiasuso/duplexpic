@@ -29,8 +29,8 @@
     "windows": [
       {
         "title": "DuplexPic",
-        "width": 800,
-        "height": 1100,
+        "width": 1024,
+        "height": 672,
         "resizable": true,
         "fullscreen": false
       }
