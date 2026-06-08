@@ -53,6 +53,7 @@ pub fn rgba_to_cmyk(r: u8, g: u8, b: u8) -> [u8; 4] {
 /// Future CMYK support will use lopdf for true /DeviceCMYK output.
 pub struct PdfDocumentBuilder {
     dpi: u32,
+    #[allow(dead_code)]
     orientation: Orientation,
     page_size: String,
 }
@@ -66,6 +67,10 @@ impl PdfDocumentBuilder {
         }
     }
 
+    pub fn get_page_size(&self) -> &str {
+        &self.page_size
+    }
+
     #[allow(dead_code)]
     pub fn new_with_size(dpi: u32, orientation: Orientation, page_size: &str) -> Self {
         PdfDocumentBuilder {
@@ -73,35 +78,6 @@ impl PdfDocumentBuilder {
             orientation,
             page_size: page_size.to_string(),
         }
-    }
-
-    /// Add the composited RGBA image to a new PDF document and create a single page.
-    ///
-    /// Returns the document, image_id, and page dimensions in pts.
-    pub fn create_single_page(&self, canvas: &RgbaImage) -> Result<(PdfDocument, XObjectId, Mm, Mm), PrintError> {
-        let (width_mm, height_mm) = self.orientation.page_mm(&self.page_size);
-        let width_pt = Mm(width_mm as f32);
-        let height_pt = Mm(height_mm as f32);
-
-        let (mut doc, image_id) = self.add_image_to_doc(canvas)?;
-
-        let transform = XObjectTransform {
-            translate_x: None,
-            translate_y: None,
-            rotate: None,
-            scale_x: None,
-            scale_y: None,
-            dpi: Some(self.dpi as f32),
-        };
-
-        let page = PdfPage::new(
-            width_pt,
-            height_pt,
-            vec![Op::UseXobject { id: image_id.clone(), transform }],
-        );
-
-        doc.with_pages(vec![page]);
-        Ok((doc, image_id, width_pt, height_pt))
     }
 
     /// Add the image to a document (no pages created).
@@ -339,13 +315,26 @@ mod tests {
         assert_eq!(cmyk, [255, 255, 0, 0]);
     }
 
+    fn make_single_page_doc(
+        builder: &PdfDocumentBuilder,
+        canvas: &RgbaImage,
+    ) -> PdfDocument {
+        let (mut doc, image_id) = builder.add_image_to_doc(canvas).unwrap();
+        let (w_mm, h_mm) = crate::print::composition::Orientation::Portrait.page_mm("A4");
+        let page = builder.make_page(
+            &image_id,
+            printpdf::Mm(w_mm as f32),
+            printpdf::Mm(h_mm as f32),
+        );
+        doc.with_pages(vec![page]);
+        doc
+    }
+
     #[test]
     fn test_add_image_rgb_creates_valid_doc() {
         let builder = PdfDocumentBuilder::new(300, Orientation::Portrait);
         let canvas = RgbaImage::from_pixel(100, 100, ::image::Rgba([128u8, 128, 128, 255]));
-        let result = builder.create_single_page(&canvas);
-        assert!(result.is_ok(), "create_single_page failed: {:?}", result.err());
-        let (doc, _, _, _) = result.unwrap();
+        let doc = make_single_page_doc(&builder, &canvas);
         let bytes = doc.save(&PdfSaveOptions::default(), &mut Vec::new());
         assert!(bytes.len() > 100, "PDF too short");
         // Check for PDF header
@@ -356,7 +345,7 @@ mod tests {
     fn test_save_to_temp_creates_file() {
         let builder = PdfDocumentBuilder::new(150, Orientation::Portrait);
         let canvas = RgbaImage::from_pixel(10, 10, ::image::Rgba([0u8, 0, 0, 255]));
-        let (doc, _, _, _) = builder.create_single_page(&canvas).unwrap();
+        let doc = make_single_page_doc(&builder, &canvas);
         let path = PdfDocumentBuilder::save_to_temp(&doc).unwrap();
         assert!(path.exists(), "Temp file should exist");
         assert!(
@@ -371,7 +360,35 @@ mod tests {
     fn test_pdf_save_orientation_portrait() {
         let builder = PdfDocumentBuilder::new(300, Orientation::Portrait);
         let canvas = RgbaImage::from_pixel(2480, 3508, ::image::Rgba([255u8, 255, 255, 255]));
-        let result = builder.create_single_page(&canvas);
-        assert!(result.is_ok(), "Portrait PDF failed: {:?}", result.err());
+        let doc = make_single_page_doc(&builder, &canvas);
+        let bytes = doc.save(&PdfSaveOptions::default(), &mut Vec::new());
+        assert!(bytes.len() > 100, "PDF should be valid");
+        assert!(bytes.starts_with(b"%PDF"), "Not a valid PDF");
+    }
+
+    #[test]
+    fn test_build_pdf_single_copy() {
+        use crate::print::composition::Orientation;
+        use crate::print::build_pdf;
+        let canvas = RgbaImage::from_pixel(50, 50, ::image::Rgba([0u8, 0, 0, 255]));
+        let doc = build_pdf(&canvas, 1, 150, Orientation::Portrait).unwrap();
+        let bytes = doc.save(&PdfSaveOptions::default(), &mut Vec::new());
+        assert!(bytes.len() > 100, "Single-page PDF too short");
+        assert!(bytes.starts_with(b"%PDF"), "Not a valid PDF");
+    }
+
+    #[test]
+    fn test_build_pdf_multi_copy_grows() {
+        use crate::print::composition::Orientation;
+        use crate::print::build_pdf;
+        let canvas = RgbaImage::from_pixel(10, 10, ::image::Rgba([255u8, 255, 255, 255]));
+        // 3 copies should be noticeably larger than 1 copy
+        let doc1 = build_pdf(&canvas, 1, 150, Orientation::Portrait).unwrap();
+        let doc3 = build_pdf(&canvas, 3, 150, Orientation::Portrait).unwrap();
+        let bytes1 = doc1.save(&PdfSaveOptions::default(), &mut Vec::new());
+        let bytes3 = doc3.save(&PdfSaveOptions::default(), &mut Vec::new());
+        assert!(bytes3.len() > bytes1.len(),
+            "3-copy PDF ({} bytes) should be larger than 1-copy ({} bytes)",
+            bytes3.len(), bytes1.len());
     }
 }

@@ -137,19 +137,57 @@ fn add_crop_marks(
 }
 
 /// Generate a multi-page PDF document (one page per copy).
-fn build_pdf(canvas: &RgbaImage, copies: u32, dpi: u32, orientation: Orientation) -> Result<PdfDocument, PrintError> {
+pub(crate) fn build_pdf(canvas: &RgbaImage, copies: u32, dpi: u32, orientation: Orientation) -> Result<PdfDocument, PrintError> {
     let builder = PdfDocumentBuilder::new(dpi, orientation);
-    let (mut doc, first_image_id, width_pt, height_pt) = builder.create_single_page(canvas)?;
+    let (width_mm, height_mm) = orientation.page_mm(&builder.get_page_size());
+    let width_pt = printpdf::Mm(width_mm as f32);
+    let height_pt = printpdf::Mm(height_mm as f32);
 
-    if copies > 1 {
-        let mut pages = vec![builder.make_page(&first_image_id, width_pt, height_pt)];
-        for _ in 1..copies {
-            let (_, image_id) = builder.add_image_to_doc(canvas)?;
-            pages.push(builder.make_page(&image_id, width_pt, height_pt));
-        }
-        doc.with_pages(pages);
-    }
+    // Build raw image bytes once, reuse for each copy
+    let raw_pixels: Vec<u8> = canvas
+        .pixels()
+        .flat_map(|p| vec![p[0], p[1], p[2], p[3]])
+        .collect();
+    use printpdf::*;
 
+    let mut doc = PdfDocument::new("DuplexPic");
+
+    // Add each copy's image to the SAME document, collecting image IDs
+    let image_ids: Vec<XObjectId> = (0..copies)
+        .map(|_| {
+            let image = RawImage {
+                pixels: RawImageData::U8(raw_pixels.clone()),
+                width: canvas.width() as usize,
+                height: canvas.height() as usize,
+                data_format: RawImageFormat::RGBA8,
+                tag: vec![],
+            };
+            doc.add_image(&image)
+        })
+        .collect();
+
+    let pages: Vec<PdfPage> = image_ids
+        .into_iter()
+        .map(|id| {
+            PdfPage::new(
+                width_pt,
+                height_pt,
+                vec![Op::UseXobject {
+                    id,
+                    transform: XObjectTransform {
+                        translate_x: None,
+                        translate_y: None,
+                        rotate: None,
+                        scale_x: None,
+                        scale_y: None,
+                        dpi: Some(dpi as f32),
+                    },
+                }],
+            )
+        })
+        .collect();
+
+    doc.with_pages(pages);
     Ok(doc)
 }
 
