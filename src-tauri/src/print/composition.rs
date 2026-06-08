@@ -305,34 +305,40 @@ pub fn composite_slot(
 // ---------------------------------------------------------------------------
 
 /// Compose both slots onto a single A4 canvas and return the RGBA image.
+/// An empty path for a slot means that slot is intentionally blank (e.g. "print
+/// top only").
 pub fn compose(data: SlotData, dpi: u32, orientation: Orientation, margins: Margins, page_size: &str) -> Result<RgbaImage, PrintError> {
     let mut canvas = A4Canvas::new(dpi, orientation, margins, page_size);
 
-    // Composite top slot
-    composite_slot(
-        &mut canvas.buffer,
-        &data.top_path,
-        Slot::Top,
-        data.top_fit,
-        data.top_rotation,
-        data.top_mirrored,
-        &margins,
-        orientation,
-        dpi,
-    )?;
+    // Composite top slot (skip if empty — single-slot mode)
+    if !data.top_path.is_empty() {
+        composite_slot(
+            &mut canvas.buffer,
+            &data.top_path,
+            Slot::Top,
+            data.top_fit,
+            data.top_rotation,
+            data.top_mirrored,
+            &margins,
+            orientation,
+            dpi,
+        )?;
+    }
 
-    // Composite bottom slot
-    composite_slot(
-        &mut canvas.buffer,
-        &data.bottom_path,
-        Slot::Bottom,
-        data.bottom_fit,
-        data.bottom_rotation,
-        data.bottom_mirrored,
-        &margins,
-        orientation,
-        dpi,
-    )?;
+    // Composite bottom slot (skip if empty — single-slot mode)
+    if !data.bottom_path.is_empty() {
+        composite_slot(
+            &mut canvas.buffer,
+            &data.bottom_path,
+            Slot::Bottom,
+            data.bottom_fit,
+            data.bottom_rotation,
+            data.bottom_mirrored,
+            &margins,
+            orientation,
+            dpi,
+        )?;
+    }
 
     Ok(canvas.buffer)
 }
