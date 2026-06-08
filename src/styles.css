@@ -26,7 +26,7 @@ body {
   display: flex;
   flex-direction: column;
   background: #1a1a1a;
-  padding: 16px 16px 56px 16px;
+  padding: 16px;
   color: #e0e0e0;
   overflow-y: auto;
 }
@@ -39,7 +39,7 @@ body {
   justify-content: flex-start;
   overflow: hidden;
   background: #2c2c2c;
-  padding: 16px 0 56px 0;
+  padding: 16px 0 0 0;
 }
 
 #canvas-scroll {
@@ -457,9 +457,7 @@ body {
 
 /* ===== ZOOM BAR ===== */
 .zoom-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -468,7 +466,7 @@ body {
   background: #1a1a1a;
   width: 100%;
   min-height: 40px;
-  z-index: 10;
+  align-self: flex-start;
 }
 
 .zoom-bar button {

@@ -183,14 +183,13 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- ZOOM BAR (fixed, independiente) -->
-    <div class="zoom-bar">
-      <button data-zoom="out" title="Alejar">−</button>
-      <input type="range" id="zoom-slider" min="50" max="200" value="100" />
-      <span class="zoom-label" id="zoom-label">100%</span>
-      <button data-zoom="in" title="Acercar">+</button>
+    <!-- ZOOM BAR (dentro de canvas-zone, debajo del scroll) -->
+      <div class="zoom-bar">
+        <button data-zoom="out" title="Alejar">−</button>
+        <input type="range" id="zoom-slider" min="50" max="200" value="100" />
+        <span class="zoom-label" id="zoom-label">100%</span>
+        <button data-zoom="in" title="Acercar">+</button>
+      </div>
     </div>
   </div>
   <script type="module" src="app.js"></script>
