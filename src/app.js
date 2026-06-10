@@ -8,6 +8,7 @@ import { initToolbars, handleToolbarAction } from './modules/controls.js';
 import { initSidebar } from './modules/sidebar.js';
 import { initProperties } from './modules/properties.js';
 import { initZoom } from './modules/zoom.js';
+import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 
 // Block F5 / Ctrl+R reload
@@ -124,6 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(dismissSplash, remaining);
 
   // ── About modal ──
+  invoke('get_app_version').then(v => {
+    const badge = document.getElementById('version-badge');
+    const verEl = document.getElementById('about-version');
+    if (badge) badge.textContent = 'v' + v;
+    if (verEl) verEl.textContent = 'v' + v;
+  });
+
   const versionBadge = document.getElementById('version-badge');
   const aboutModal = document.getElementById('about-modal');
   const aboutClose = document.getElementById('about-close');

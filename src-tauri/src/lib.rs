@@ -23,6 +23,11 @@ fn mime_from_path(path: &str) -> &str {
 }
 
 #[tauri::command]
+fn get_app_version() -> String {
+    env!("CARGO_PKG_VERSION").to_string()
+}
+
+#[tauri::command]
 fn read_image(path: String) -> Result<String, String> {
     let bytes = fs::read(&path).map_err(|e| format!("Error leyendo archivo: {}", e))?;
     let mime = mime_from_path(&path);
@@ -225,7 +230,7 @@ pub fn run() {
                 .with_flags(tauri_plugin_prevent_default::Flags::CONTEXT_MENU)
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![read_image, transform_image, compose_print])
+        .invoke_handler(tauri::generate_handler![read_image, transform_image, compose_print, get_app_version])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
