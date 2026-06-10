@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { appState } from './state.js';
+import { showLoading, showSuccess, showError, hideNotification } from './notification.js';
 
 export function initProperties() {
   // ── Subscribe to events ────────────────────────────────────
@@ -400,13 +401,6 @@ function buildPrintPayload(mode, destPath) {
   };
 }
 
-function setStatus(text, type) {
-  const el = document.getElementById('print-status');
-  if (!el) return;
-  el.textContent = text;
-  el.className = 'print-status' + (type ? ' ' + type : '');
-}
-
 export async function triggerSavePdf() {
   // Open native save dialog FIRST
   const { save } = await import('@tauri-apps/plugin-dialog');
@@ -414,42 +408,43 @@ export async function triggerSavePdf() {
     filters: [{ name: 'PDF', extensions: ['pdf'] }],
     defaultPath: 'duplexpic-output.pdf',
   });
-  if (!dest) {
-    setStatus('Guardado cancelado', '');
-    return;
-  }
+  if (!dest) return;
 
-  setStatus('Generando PDF...', '');
+  showLoading('Generando PDF…');
 
   try {
     const result = await invoke('compose_print', buildPrintPayload('save', dest));
+    hideNotification();
     if (result.ok) {
-      setStatus('✓ PDF guardado', 'success');
+      showSuccess('PDF guardado correctamente');
     } else {
-      setStatus('Error [' + (result.code || '?') + ']: ' + (result.error || 'Unknown'), 'error');
+      showError('Error [' + (result.code || '?') + ']: ' + (result.error || 'Unknown'));
     }
   } catch (err) {
-    setStatus('Error: ' + err, 'error');
+    hideNotification();
+    showError(err);
   }
 }
 
 export async function triggerComposePrint() {
   const method = appState.printMethod === 'open' ? 'open' : 'print';
-  const label = method === 'open' ? 'Abriendo PDF en visor...' : 'Enviando a impresora...';
-  setStatus(label, '');
+  const label = method === 'open' ? 'Abriendo PDF en el visor…' : 'Enviando a la impresora…';
+  showLoading(label);
 
   try {
     const result = await invoke('compose_print', buildPrintPayload(method));
+    hideNotification();
     if (result.ok) {
       const msg = method === 'open'
         ? 'PDF abierto en el visor'
-        : 'Enviado a impresora';
-      setStatus(msg, 'success');
+        : 'Impresión enviada';
+      showSuccess(msg);
     } else {
-      setStatus('Error [' + (result.code || '?') + ']: ' + (result.error || 'Unknown'), 'error');
+      showError('Error [' + (result.code || '?') + ']: ' + (result.error || 'Unknown'));
     }
   } catch (err) {
-    setStatus('Error: ' + err, 'error');
+    hideNotification();
+    showError(err);
   }
 }
 
