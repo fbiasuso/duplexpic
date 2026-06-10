@@ -21,3 +21,6 @@ Thumbs.db
 
 # Tauri generated
 src-tauri/gen/
+
+# Archive — copia de contexto histórico, no trackear
+CONTEXT-archive.md
