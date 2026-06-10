@@ -176,16 +176,30 @@ export function initProperties() {
   }
 
   // Apply — persist to state
+  let applyTimer = null;
   const applyBtn = document.querySelector('[data-action="apply-margins"]');
   if (applyBtn) {
     applyBtn.addEventListener('click', () => {
+      if (applyTimer) clearTimeout(applyTimer);
+
       const margins = readSliderValues();
       appState.setMargins(margins);
       appState.commitMargins();
       movedMargins.clear();
       hideAllGuides();
-      applyBtn.classList.add('applied');
-      setTimeout(() => { applyBtn.classList.remove('applied'); }, 3000);
+
+      applyBtn.textContent = '✓ Aplicado';
+      applyBtn.classList.add('applied', 'applied-visible');
+
+      applyTimer = setTimeout(() => {
+        applyBtn.classList.remove('applied-visible');
+        // After the fade-out transition, reset text
+        setTimeout(() => {
+          applyBtn.classList.remove('applied');
+          applyBtn.textContent = 'Aplicar';
+          applyTimer = null;
+        }, 300);
+      }, 1500);
     });
   }
 
