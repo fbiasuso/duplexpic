@@ -19,6 +19,22 @@
     </div>
   </div>
 
+  <!-- ABOUT MODAL -->
+  <div id="about-modal" class="about-overlay">
+    <div class="about-card">
+      <h2 class="about-title">DuplexPic</h2>
+      <p class="about-version" id="about-version">v1.2.0</p>
+      <p class="about-desc">
+        Composición e impresión de dos imágenes en una sola hoja.<br />
+        Hecho con Rust + Tauri.
+      </p>
+      <a class="about-link" href="https://github.com/fbiasuso/duplexpic" target="_blank" rel="noopener">
+        github.com/fbiasuso/duplexpic
+      </a>
+      <button id="about-close" class="about-btn">Aceptar</button>
+    </div>
+  </div>
+
   <!-- NOTIFICATION MODAL -->
   <div id="notification-modal" class="ntf-overlay">
     <div class="ntf-card">
@@ -209,6 +225,7 @@
         <input type="range" id="zoom-slider" min="50" max="200" value="100" />
         <span class="zoom-label" id="zoom-label">100%</span>
         <button data-zoom="in" title="Acercar">+</button>
+        <span class="version-badge" id="version-badge">v1.2.0</span>
       </div>
     </div>
   </div>

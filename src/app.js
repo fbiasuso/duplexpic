@@ -122,4 +122,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const elapsed = Date.now() - _splashStart;
   const remaining = Math.max(0, MIN_SPLASH_MS - elapsed);
   setTimeout(dismissSplash, remaining);
+
+  // ── About modal ──
+  const versionBadge = document.getElementById('version-badge');
+  const aboutModal = document.getElementById('about-modal');
+  const aboutClose = document.getElementById('about-close');
+
+  versionBadge?.addEventListener('click', () => {
+    if (!aboutModal) return;
+    aboutModal.classList.add('visible');
+  });
+
+  aboutClose?.addEventListener('click', () => {
+    aboutModal?.classList.remove('visible');
+  });
+
+  aboutModal?.addEventListener('click', (e) => {
+    if (e.target === aboutModal) {
+      aboutModal.classList.remove('visible');
+    }
+  });
 });

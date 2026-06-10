@@ -809,3 +809,110 @@ body {
 .ntf-error .ntf-card {
   border-color: #ef4444;
 }
+
+/* ===== VERSION BADGE ===== */
+.version-badge {
+  margin-left: auto;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  color: #666;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.2s, background 0.2s;
+  user-select: none;
+}
+
+.version-badge:hover {
+  color: #aaa;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ===== ABOUT MODAL ===== */
+.about-overlay {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.about-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.about-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 36px 44px;
+  min-width: 300px;
+  max-width: 400px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+  transform: translateY(12px) scale(0.97);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.visible .about-card {
+  transform: translateY(0) scale(1);
+}
+
+.about-title {
+  font-size: 1.4rem;
+  color: #e0e0e0;
+  margin: 0;
+}
+
+.about-version {
+  color: #666;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.about-desc {
+  color: #999;
+  font-size: 0.85rem;
+  text-align: center;
+  line-height: 1.5;
+  margin: 8px 0;
+}
+
+.about-link {
+  color: #4a9eff;
+  font-size: 0.83rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.about-link:hover {
+  color: #6ab4ff;
+  text-decoration: underline;
+}
+
+.about-btn {
+  min-width: 120px;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: #4a9eff;
+  color: #fff;
+  font-weight: 500;
+  transition: background 0.2s;
+  margin-top: 8px;
+}
+
+.about-btn:hover {
+  background: #3a8eef;
+}
