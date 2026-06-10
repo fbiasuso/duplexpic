@@ -193,11 +193,8 @@ export function initProperties() {
 
       applyTimer = setTimeout(() => {
         applyBtn.classList.remove('applied');
-        // Wait for the 0.6s CSS transition to finish, then reset text
-        setTimeout(() => {
-          applyBtn.textContent = 'Aplicar';
-          applyTimer = null;
-        }, 600);
+        applyBtn.textContent = 'Aplicar';
+        applyTimer = null;
       }, 1500);
     });
   }
