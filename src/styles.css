@@ -221,21 +221,25 @@ body {
   width: 100%;
   padding: 8px;
   margin-top: 6px;
-  background: #22c55e;
+  background: #4a9eff;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
-  transition: background 0.2s, transform 0.15s ease;
+  transition: background 0.3s ease;
 }
 
 .apply-btn:hover {
-  background: #16a34a;
+  background: #3a8eef;
 }
 
 .apply-btn:active {
   transform: scale(0.97);
+}
+
+.apply-btn.applied {
+  background: #22c55e;
 }
 
 .cancel-btn {

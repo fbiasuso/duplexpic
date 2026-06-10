@@ -184,9 +184,8 @@ export function initProperties() {
       appState.commitMargins();
       movedMargins.clear();
       hideAllGuides();
-      const origText = applyBtn.textContent;
-      applyBtn.textContent = '✓ Aplicado';
-      setTimeout(() => { applyBtn.textContent = origText; }, 1500);
+      applyBtn.classList.add('applied');
+      setTimeout(() => { applyBtn.classList.remove('applied'); }, 3000);
     });
   }
 
