@@ -221,16 +221,21 @@ body {
   width: 100%;
   padding: 8px;
   margin-top: 6px;
-  background: #4a9eff;
+  background: #22c55e;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
+  transition: background 0.2s, transform 0.15s ease;
 }
 
 .apply-btn:hover {
-  background: #3a8eef;
+  background: #16a34a;
+}
+
+.apply-btn:active {
+  transform: scale(0.97);
 }
 
 .cancel-btn {

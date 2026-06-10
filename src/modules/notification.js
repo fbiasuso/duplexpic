@@ -96,15 +96,6 @@ export function showNotification(type, message, opts = {}) {
     btn.addEventListener('click', onButton);
     btn._listener = onButton;
 
-    // Also close on backdrop click for success/error
-    const onBackdrop = (e) => {
-      if (e.target === modal && !isLoading) {
-        if (autoTimer) clearTimeout(autoTimer);
-        closeModal(modal, true);
-      }
-    };
-    modal._backdropListener = onBackdrop;
-    modal.addEventListener('click', onBackdrop);
   });
 }
 
@@ -141,12 +132,6 @@ function closeModal(modal, resolved) {
 
   modal.classList.remove('ntf-visible');
   modal.classList.add('ntf-closing');
-
-  // Cleanup listeners
-  if (modal._backdropListener) {
-    modal.removeEventListener('click', modal._backdropListener);
-    modal._backdropListener = null;
-  }
 
   if (_currentResolve) {
     _currentResolve(resolved);
