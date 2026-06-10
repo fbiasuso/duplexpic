@@ -219,6 +219,7 @@ body {
 
 .apply-btn {
   width: 100%;
+  min-width: 140px;
   padding: 8px;
   margin-top: 6px;
   background: #4a9eff;
@@ -227,15 +228,11 @@ body {
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
-  transition: background 0.3s ease;
+  transition: background 0.6s ease;
 }
 
 .apply-btn:hover {
   background: #3a8eef;
-}
-
-.apply-btn:active {
-  transform: scale(0.97);
 }
 
 .apply-btn.applied {

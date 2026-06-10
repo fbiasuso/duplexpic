@@ -189,16 +189,15 @@ export function initProperties() {
       hideAllGuides();
 
       applyBtn.textContent = '✓ Aplicado';
-      applyBtn.classList.add('applied', 'applied-visible');
+      applyBtn.classList.add('applied');
 
       applyTimer = setTimeout(() => {
-        applyBtn.classList.remove('applied-visible');
-        // After the fade-out transition, reset text
+        applyBtn.classList.remove('applied');
+        // Wait for the 0.6s CSS transition to finish, then reset text
         setTimeout(() => {
-          applyBtn.classList.remove('applied');
           applyBtn.textContent = 'Aplicar';
           applyTimer = null;
-        }, 300);
+        }, 600);
       }, 1500);
     });
   }
