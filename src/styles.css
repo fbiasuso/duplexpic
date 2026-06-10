@@ -12,6 +12,77 @@ body {
   overflow: hidden;
 }
 
+/* ===== SPLASH SCREEN ===== */
+#splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #040A14 0%, #0C1E38 100%);
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+#splash.hide {
+  opacity: 0;
+  transform: scale(1.05);
+  pointer-events: none;
+}
+
+#splash.remove {
+  display: none;
+}
+
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  animation: splash-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.splash-logo {
+  width: 320px;
+  height: auto;
+  image-rendering: auto;
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.4));
+}
+
+/* Dots loader */
+.splash-loader {
+  display: flex;
+  gap: 10px;
+}
+
+.splash-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  animation: dot-bounce 1.4s ease-in-out infinite both;
+}
+
+.splash-dot:nth-child(1) { animation-delay: 0s; }
+.splash-dot:nth-child(2) { animation-delay: 0.2s; }
+.splash-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes splash-in {
+  0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes dot-bounce {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    background: rgba(255, 255, 255, 0.3);
+  }
+  40% {
+    transform: scale(1);
+    background: rgba(255, 255, 255, 0.9);
+  }
+}
+
 /* ===== LAYOUT ===== */
 #app {
   display: flex;

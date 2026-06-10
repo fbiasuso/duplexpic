@@ -1,3 +1,6 @@
+// Capture splash start as early as possible
+const _splashStart = Date.now();
+
 import { initCanvas, renderSlot } from './modules/canvas.js';
 import { openFileDialog } from './modules/fileLoader.js';
 import { appState } from './modules/state.js';
@@ -103,4 +106,20 @@ document.addEventListener('DOMContentLoaded', () => {
       handleToolbarAction(action, slotId);
     }
   });
+
+  // ── Splash dismissal ──
+  const MIN_SPLASH_MS = 1200;
+
+  function dismissSplash() {
+    const splash = document.getElementById('splash');
+    if (!splash || splash.classList.contains('remove')) return;
+    splash.classList.add('hide');
+    splash.addEventListener('transitionend', () => {
+      splash.classList.add('remove');
+    }, { once: true });
+  }
+
+  const elapsed = Date.now() - _splashStart;
+  const remaining = Math.max(0, MIN_SPLASH_MS - elapsed);
+  setTimeout(dismissSplash, remaining);
 });
