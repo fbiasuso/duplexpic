@@ -22,5 +22,16 @@ Thumbs.db
 # Tauri generated
 src-tauri/gen/
 
+# Android keystore (no compartir)
+*.keystore
+
+# Local env (passwords, secrets)
+.env
+
 # Archive — copia de contexto histórico, no trackear
 CONTEXT-archive.md
+
+# AI tooling & local config — no trackear
+.opencode/
+CONTEXT.md
+.atl/
